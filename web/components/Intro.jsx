@@ -11,6 +11,7 @@ gsap.registerPlugin(ScrambleTextPlugin, DrawSVGPlugin);
 
 const LEDGER_CHARS = '0123456789₹₹,.DRCR';
 const TOKENS = ['DR', 'CR', '₹', 'GST', 'PAN', 'TDS', 'ITR', '26AS', 'AIS'];
+const TEAM = ['Chetanya Kaushal', 'Jay Teli', 'Tanuj Maniyar'];
 
 // Matrix-style rain, but made of ledger entries: amounts, ₹, DR/CR and tax codes
 function startRain(canvas) {
@@ -100,7 +101,12 @@ export default function Intro() {
       .from('.intro .hm-grin', { drawSVG: '50% 50%', duration: .6, ease: 'power2.out' }, 2)
       .to('.intro-title', { duration: 1.3, scrambleText: { text: 'LEDGER HACKERS', chars: '₹0123456789DRCR#%', revealDelay: .25, speed: .7 } }, 1.55)
       .to('.intro-ledger', { duration: 1.1, scrambleText: { text: 'DR ₹1,84,200.00  =  CR ₹1,84,200.00  ✓ BALANCED', chars: '0123456789₹,.', speed: .9 } }, 2.25)
-      .addLabel('exit', 3.6)
+      .from('.intro-team-label', { autoAlpha: 0, y: 8, duration: .5 }, 2.75)
+      .add(TEAM.map((name, i) => gsap.to(`.intro-name-${i}`, {
+        duration: .8, scrambleText: { text: name.toUpperCase(), chars: '01₹#%DRCR', revealDelay: .15, speed: .8 },
+      })), 2.9, 'start', .28)
+      .from('.intro-name', { autoAlpha: 0, duration: .2, stagger: .28 }, 2.9)
+      .addLabel('exit', 4.3)
       .add(() => root.current.classList.add('is-glitch', 'is-burst'), 'exit-=.3')
       .to(root.current, { clipPath: `circle(0% at ${target})`, duration: 1, ease: 'expo.inOut' }, 'exit')
       .to('.intro-stage', { scale: .2, autoAlpha: 0, duration: .9, ease: 'expo.in' }, 'exit');
@@ -114,7 +120,7 @@ export default function Intro() {
 
   if (gone) return null;
   return (
-    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label="Ledger Hackers intro">
+    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label={`Ledger Hackers intro, built by ${TEAM.join(', ')}`}>
       <canvas ref={rain} className="intro-rain" aria-hidden="true" />
       <svg className="intro-traces" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         {traces.map((t, i) => <path key={i} className="trace" d={t.d} />)}
@@ -124,6 +130,10 @@ export default function Intro() {
         <HackerMark size={260} className="intro-mark" />
         <div className="intro-title">&nbsp;</div>
         <div className="intro-ledger">&nbsp;</div>
+        <div className="intro-team">
+          <span className="intro-team-label">&gt; built by</span>
+          <ul>{TEAM.map((n, i) => <li key={n} className={`intro-name intro-name-${i}`}>{'\u00a0'.repeat(n.length)}</li>)}</ul>
+        </div>
       </div>
       <div className="intro-scan" aria-hidden="true" />
       <button className="intro-skip" autoFocus>Skip intro</button>
@@ -139,6 +149,11 @@ export default function Intro() {
         .intro-title{font-family:var(--mono);font-weight:700;font-size:clamp(1.9rem,7vw,4.4rem);letter-spacing:.14em;line-height:1;white-space:nowrap;
           text-shadow:-2px 0 #ff3ea5,2px 0 #3ee8ff,0 0 24px rgba(58,123,255,.6)}
         .intro-ledger{font-family:var(--mono);font-size:clamp(.72rem,2.4vw,.95rem);letter-spacing:.06em;color:#7fd8ff;min-height:1.4em}
+        .intro-team{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:6px}
+        .intro-team-label{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#ff4fb0}
+        .intro-team ul{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 12px}
+        .intro-name{font-family:var(--mono);font-weight:600;font-size:clamp(.78rem,2.6vw,1rem);letter-spacing:.12em;white-space:nowrap;
+          padding:6px 12px;border-radius:999px;color:#e9f7ff;background:rgba(58,123,255,.12);box-shadow:inset 0 0 0 1px rgba(127,216,255,.35),0 0 18px rgba(58,123,255,.25)}
         .intro-scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
         .intro-skip{position:absolute;right:20px;bottom:20px;height:40px;padding:0 18px;border-radius:999px;font-size:13px;color:var(--fg-2);
           background:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(255,255,255,.08)}
