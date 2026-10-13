@@ -8,7 +8,7 @@ export default function Bento() {
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.from('.bento-head>*', { y: 50, autoAlpha: 0, filter: 'blur(12px)', duration: 1.2, stagger: .1, ease: 'expo.out',
+      gsap.from('.bento-head>*', { y: 50, autoAlpha: 0, duration: 1.2, stagger: .1, ease: 'expo.out',
         scrollTrigger: { trigger: '.bento-head', start: 'top 80%' } });
       gsap.set('.tile', { y: 80, autoAlpha: 0, scale: .96 });
       ScrollTrigger.batch('.tile', {
@@ -29,7 +29,7 @@ export default function Bento() {
     <section ref={root} id="features" className="bento-sec">
       <div className="wrap">
         <div className="bento-head">
-          <span className="eyebrow glass">Live now</span>
+          <span className="eyebrow glass-lite">Live now</span>
           <h2 className="h2">Built for the busiest<br />week of the year.</h2>
           <p className="lede">Everything below is running in the staff app today, not a mock-up.</p>
         </div>

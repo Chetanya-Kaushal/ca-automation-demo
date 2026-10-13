@@ -1,7 +1,8 @@
 'use client';
-import dynamic from 'next/dynamic';
 import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
+import { startSmoothScroll, scrollToHash } from '@/lib/smooth';
+import Stage from '@/components/Stage';
 import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
 import Story from '@/components/Story';
@@ -9,15 +10,12 @@ import Bento from '@/components/Bento';
 import DayReel from '@/components/DayReel';
 import { Demo, Roadmap, Finale } from '@/components/Sections';
 
-// WebGL only in the browser
-const Scene = dynamic(() => import('@/components/Scene'), { ssr: false });
-
 export default function Page() {
   const stage = useRef();
   const [active, setActive] = useState(true);
 
   useGSAP(() => {
-    gsap.from(stage.current, { autoAlpha: 0, duration: 1.6, ease: 'power2.out' });
+    const stop = startSmoothScroll();
     // The 3D stage lives behind hero + story; after that it fades and stops rendering
     ScrollTrigger.create({
       trigger: '#features', start: 'top 90%', end: 'top 20%', scrub: true,
@@ -25,19 +23,17 @@ export default function Page() {
       onLeave: () => setActive(false),
       onEnterBack: () => setActive(true),
     });
-    // Sections are created top-to-bottom, but fonts can shift layout after load
     // Pinned sections add height after load, so re-aim deep links like /#demo once positions are known
-    document.fonts?.ready.then(() => {
-      ScrollTrigger.refresh();
-      if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
-    });
+    document.fonts?.ready.then(() => { ScrollTrigger.refresh(); scrollToHash(location.hash); });
+    return stop;
   });
 
   return (
     <>
-      <div ref={stage} className="stage" aria-hidden="true"><Scene active={active} /></div>
+      <a className="skip" href="#main">Skip to content</a>
+      <div ref={stage} className="stage" aria-hidden="true"><Stage active={active} /></div>
       <Nav />
-      <main>
+      <main id="main">
         <Hero />
         <Story />
         <Bento />
@@ -46,7 +42,11 @@ export default function Page() {
         <Roadmap />
         <Finale />
       </main>
-      <style>{`.stage{position:fixed;inset:0;z-index:0}`}</style>
+      <style>{`
+        .stage{position:fixed;inset:0;z-index:0}
+        .skip{position:fixed;left:16px;top:16px;z-index:60;padding:10px 16px;border-radius:999px;background:var(--fg);color:var(--ink);font-size:14px;font-weight:500;transform:translateY(-200%)}
+        .skip:focus{transform:none}
+      `}</style>
     </>
   );
 }

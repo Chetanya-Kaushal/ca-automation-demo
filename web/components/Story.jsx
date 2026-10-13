@@ -56,25 +56,26 @@ export default function Story() {
           <article key={c.n} className={`chapter ch-${i}${[0, 3, 4].includes(i) ? ' right' : ''}`}>
             <span className="ch-num" aria-hidden="true">{c.n}</span>
             <div className="ch-text">
-              <span className="eyebrow glass">{c.eyebrow}</span>
+              <span className="eyebrow glass-lite">{c.eyebrow}</span>
               <h2 className="h2">{c.title}</h2>
               <p className="lede">{c.body}</p>
             </div>
             <ul className="chips">
-              {c.chips.map(([ic, t]) => <li key={t} className="chip glass"><Icon name={ic} size={16} /><span>{t}</span></li>)}
+              {c.chips.map(([ic, t]) => <li key={t} className="chip glass-lite"><Icon name={ic} size={16} /><span>{t}</span></li>)}
             </ul>
           </article>
         ))}
-        <ol className="rail glass" aria-hidden="true">
+        <ol className="rail glass-lite" aria-hidden="true">
           {CH.map(c => <li key={c.n}><span>{c.eyebrow}</span></li>)}
           <i className="rail-fill" />
         </ol>
       </div>
       <style>{`
         .story{height:auto}
-        .story-stage{position:relative;height:100dvh;overflow:hidden}
+        .story-stage{position:relative;height:100vh;height:100dvh;overflow:hidden}
         .chapter{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr);align-content:end;padding:0 max(16px,calc((100vw - 1240px)/2)) calc(14vh + 40px);pointer-events:none}
-        .ch-text{display:flex;flex-direction:column;align-items:flex-start;gap:18px;max-width:640px}
+        .ch-text{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;gap:18px;max-width:640px}
+        .ch-text::before{content:"";position:absolute;inset:-70px -110px -50px;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(5,6,10,.62),rgba(5,6,10,.25) 60%,transparent)}
         .ch-num{position:absolute;top:14vh;left:max(16px,calc((100vw - 1240px)/2));font-size:clamp(5rem,15vw,13rem);font-weight:600;letter-spacing:-.07em;line-height:1;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.16)}
         .chips{list-style:none;display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
         .chip{display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 18px 0 14px;border-radius:999px;font-size:14px;color:var(--fg)}

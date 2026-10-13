@@ -3,4 +3,5 @@ export default {
   output: 'export',
   images: { unoptimized: true },
   reactStrictMode: true,
+  experimental: { optimizePackageImports: ['@react-three/drei', 'gsap'] },
 };

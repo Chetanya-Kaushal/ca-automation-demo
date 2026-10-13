@@ -10,7 +10,7 @@
   --mono:"SF Mono",ui-monospace,var(--font-geist-mono),monospace;
 }
 html{background:var(--ink);color:var(--fg);font:400 1rem/1.5 var(--font);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-body{min-height:100dvh;overflow-x:clip}
+body{min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-x:clip}
 a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 img,svg,video,canvas{display:block}
@@ -43,6 +43,10 @@ section{position:relative;z-index:2}
   background:radial-gradient(120% 70% at 18% -10%,rgba(255,255,255,.28),transparent 46%),
              radial-gradient(90% 60% at 100% 120%,rgba(155,123,255,.16),transparent 60%)}
 
+/* Lite glass: same rim light, no live backdrop blur (cheap enough to use dozens over moving 3D) */
+.glass-lite{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06)),rgba(10,12,20,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.08),0 10px 30px -14px rgba(0,0,0,.6)}
+
 /* Solid "glass" for scrolling cards: same light, no live blur (keeps scrolling at 120 fps) */
 .slab{position:relative;isolation:isolate;
   background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),rgba(12,14,22,.72);
@@ -55,11 +59,11 @@ section{position:relative;z-index:2}
 .bezel>.core{border-radius:calc(var(--r-xl) - 6px);height:100%}
 
 /* ── TYPE ── */
-.eyebrow{display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-2)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;min-height:26px;padding:5px 12px;line-height:1.35;border-radius:999px;font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-2)}
 .display{font-size:clamp(3.1rem,9.2vw,9rem);line-height:.92;letter-spacing:-.055em;font-weight:600}
 .h2{font-size:clamp(2.4rem,6vw,5.4rem);line-height:.96;letter-spacing:-.045em;font-weight:600}
 .h3{font-size:clamp(1.35rem,2.2vw,1.9rem);line-height:1.1;letter-spacing:-.025em;font-weight:600}
-.lede{font-size:clamp(1.05rem,1.5vw,1.3rem);line-height:1.5;letter-spacing:-.012em;color:var(--fg-2);max-width:38ch}
+.lede{font-size:clamp(1.05rem,1.5vw,1.3rem);line-height:1.5;letter-spacing:-.012em;color:var(--fg-2);max-width:38ch;text-shadow:0 1px 24px rgba(5,6,10,.7)}
 .dim{color:var(--fg-3)}
 .mono{font-family:var(--mono);font-size:.86em;letter-spacing:0}
 .split-line{display:block;overflow:hidden;padding-bottom:.08em}
@@ -79,6 +83,7 @@ section{position:relative;z-index:2}
 /* ── ENTRY (set by GSAP; content stays visible without JS) ── */
 .reveal{will-change:transform,opacity}
 
+@media (max-width:420px){.eyebrow{letter-spacing:.14em;font-size:10px}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important;animation-iteration-count:1!important}
 }

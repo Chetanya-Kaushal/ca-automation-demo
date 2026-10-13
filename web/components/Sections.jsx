@@ -8,10 +8,10 @@ function useReveal(root) {
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.set('.rv', { y: 60, autoAlpha: 0, filter: 'blur(14px)' });
+      gsap.set('.rv', { y: 60, autoAlpha: 0 });
       ScrollTrigger.batch(root.current.querySelectorAll('.rv'), {
         start: 'top 86%',
-        onEnter: els => gsap.to(els, { y: 0, autoAlpha: 1, filter: 'blur(0px)', duration: 1.3, stagger: .09, ease: 'expo.out', overwrite: true }),
+        onEnter: els => gsap.to(els, { y: 0, autoAlpha: 1, duration: 1.3, stagger: .09, ease: 'expo.out', overwrite: true }),
       });
     });
     return () => mm.revert();
@@ -26,7 +26,7 @@ export function Demo() {
     <section ref={root} id="demo" className="demo-sec">
       <div className="wrap">
         <div className="sec-head">
-          <span className="eyebrow glass rv">Interactive demo</span>
+          <span className="eyebrow glass-lite rv">Interactive demo</span>
           <h2 className="h2 rv">Run the whole workflow.<br /><span className="dim">Right here.</span></h2>
           <p className="lede rv">Three scenarios with sample data: a family upload, a missing document, and a deadline from reminder to delivery. Turn on Autopilot and watch it decide.</p>
         </div>
@@ -35,7 +35,7 @@ export function Demo() {
             <iframe src="/demo?embed=1" title="Ledger Hackers interactive demo" />
           ) : (
             <button className="device-cover" onClick={() => setLive(true)}>
-              <span className="play glass lens"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
+              <span className="play glass"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
               <b>Start the demo</b><span className="dim">Loads the live three-panel workflow</span>
             </button>
           )}
@@ -72,7 +72,7 @@ export function Roadmap() {
     <section ref={root} id="roadmap" className="road">
       <div className="wrap road-grid">
         <div className="road-left">
-          <span className="eyebrow glass rv">Next</span>
+          <span className="eyebrow glass-lite rv">Next</span>
           <h2 className="h2 rv">Where it goes<br />from here.</h2>
           <p className="lede rv">Intake, sorting, learning, reminders and delivery are live. These come next, in build order.</p>
         </div>
@@ -121,7 +121,7 @@ export function Finale() {
         </h2>
         <div className="fin-cta">
           <a className="btn btn-solid" href="/app">Open the staff app<span className="knob"><Icon name="up" size={16} stroke={1.6} /></span></a>
-          <a className="btn btn-glass glass lens" href="#demo">Try the demo<span className="knob"><Icon name="arrow" size={16} stroke={1.6} /></span></a>
+          <a className="btn btn-glass glass" href="#demo">Try the demo<span className="knob"><Icon name="arrow" size={16} stroke={1.6} /></span></a>
         </div>
       </div>
       <footer className="wrap foot">
@@ -129,7 +129,7 @@ export function Finale() {
         <span className="dim">Demo data only. Built on Cloudflare Workers.</span>
       </footer>
       <style>{`
-        .finale{position:relative;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;padding-top:160px;overflow:hidden}
+        .finale{position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-end;padding-top:160px;overflow:hidden}
         .fin-orb{position:absolute;left:50%;top:38%;width:min(1100px,140vw);aspect-ratio:1;margin-left:min(-550px,-70vw);transform-origin:center;border-radius:50%;
           background:radial-gradient(closest-side,rgba(76,141,255,.62),rgba(155,123,255,.34) 45%,rgba(62,224,197,.12) 70%,transparent);pointer-events:none}
         .fin-inner{position:relative;display:flex;flex-direction:column;gap:40px;padding-bottom:120px}

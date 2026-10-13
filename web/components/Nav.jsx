@@ -1,13 +1,26 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
 import Icon from './Icon';
+import { lenis } from '@/lib/smooth';
 
 const LINKS = [['Story', '#story'], ['Features', '#features'], ['A day', '#day'], ['Demo', '#demo'], ['Roadmap', '#roadmap']];
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
-  const root = useRef(), menu = useRef();
+  const root = useRef(), menu = useRef(), burger = useRef();
+
+  // Open menu: freeze page scroll, focus the first link, Esc closes, focus returns to the button
+  useEffect(() => {
+    const main = document.getElementById('main');
+    if (!open) { lenis?.start(); main?.removeAttribute('inert'); return; }
+    lenis?.stop(); main?.setAttribute('inert', '');
+    menu.current.style.visibility = 'visible'; // focusable now; the fade-in can catch up
+    menu.current.querySelector('.menu-link')?.focus();
+    const onKey = e => { if (e.key === 'Escape') { setOpen(false); burger.current?.focus(); } };
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, [open]);
 
   useGSAP(() => {
     gsap.from('.nav-island', { y: -30, autoAlpha: 0, duration: 1.1, ease: 'expo.out', delay: .2 });
@@ -33,11 +46,11 @@ export default function Nav() {
           {LINKS.map(([l, h]) => <li key={h}><a href={h}>{l}</a></li>)}
         </ul>
         <a href="/app" className="nav-cta">Staff sign in<Icon name="up" size={14} /></a>
-        <button className={`burger ${open ? 'is-open' : ''}`} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        <button ref={burger} className={`burger ${open ? 'is-open' : ''}`} aria-controls="site-menu" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(o => !o)}>
           <span /><span />
         </button>
       </nav>
-      <div ref={menu} className="menu glass" style={{ visibility: 'hidden', opacity: 0 }} aria-hidden={!open}>
+      <div ref={menu} id="site-menu" className="menu glass" style={{ visibility: 'hidden', opacity: 0 }} aria-hidden={!open}>
         <ul>
           {[...LINKS, ['Staff sign in', '/app']].map(([l, h]) => (
             <li key={h} className="menu-row"><a className="menu-link" href={h} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>{l}</a></li>

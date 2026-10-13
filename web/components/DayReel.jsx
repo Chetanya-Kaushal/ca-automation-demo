@@ -37,7 +37,7 @@ export default function DayReel() {
   return (
     <section ref={root} id="day" className="reel">
       <div className="reel-head wrap">
-        <span className="eyebrow glass">A day at the firm</span>
+        <span className="eyebrow glass-lite">A day at the firm</span>
         <h2 className="h2">One client. Zero chasing.</h2>
       </div>
       <div ref={track} className="reel-track">
@@ -52,7 +52,7 @@ export default function DayReel() {
       </div>
       <div className="reel-bar wrap" aria-hidden="true"><i /></div>
       <style>{`
-        .reel{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:48px;padding:96px 0;overflow:hidden;perspective:1400px}
+        .reel{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;gap:48px;padding:96px 0;overflow:hidden;perspective:1400px}
         .reel-head{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
         .reel-track{display:flex;gap:20px;padding:0 max(16px,calc((100vw - 1240px)/2));width:max-content;will-change:transform}
         .moment{width:min(420px,78vw);flex-shrink:0;transform-style:preserve-3d}
