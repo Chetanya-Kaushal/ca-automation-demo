@@ -69,7 +69,6 @@ export default function Intro() {
 
     const done = contextSafe(() => {
       stopRain(); clearTimeout(stopScroll);
-      try { sessionStorage.setItem('lh-intro', '1'); } catch (e) {}
       html.classList.remove('intro-on');
       lenis?.start();
       finishIntro();
