@@ -3,753 +3,1002 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team CA — Document Automation Demo</title>
+<title>Ledger Hackers — Document Automation</title>
+<meta name="description" content="Client documents arrive on WhatsApp and email. The system identifies owners, spots missing files, chases deadlines and routes only real decisions to the CA team.">
+<meta name="color-scheme" content="light dark">
+<script>
+  // Hide hero until GSAP intro runs; module removes this class (or on failure)
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('preanim');
+  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --wa-green:#25D366;--wa-dark:#075E54;--wa-bg:#ECE5DD;--wa-bubble:#DCF8C6;
-  --wa-other:#fff;--wa-shell:#1c1c1e;
-  --sys-bg:#0f172a;--sys-card:#1e293b;--sys-border:#334155;
-  --ca-bg:#111827;--ca-card:#1f2937;--ca-border:#374151;
-  --blue:#3b82f6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
-  --text:#f1f5f9;--muted:#94a3b8;--dim:#475569;
+  --bg:#f5f5f7;--surface:rgba(255,255,255,.72);--surface-solid:#fff;--elev:#fff;--fill:rgba(118,118,128,.12);
+  --text:#1d1d1f;--text-2:#515154;--text-3:#6e6e73;--line:rgba(0,0,0,.08);--line-2:rgba(0,0,0,.14);
+  --accent:#0066cc;--accent-soft:rgba(0,102,204,.1);
+  --green:#1a7f37;--green-soft:rgba(26,127,55,.1);
+  --amber:#b25000;--amber-soft:rgba(178,80,0,.1);
+  --red:#d70015;--red-soft:rgba(215,0,21,.08);
+  --purple:#6e3ad6;--purple-soft:rgba(110,58,214,.1);
+  --neutral:#515154;--neutral-soft:rgba(118,118,128,.12);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 1px 1px rgba(0,0,0,.03),0 16px 40px -8px rgba(0,0,0,.1);
+  --flow-line:#c7c7cc;--flow-doc:#8e8e93;
+  --wa-head:#f6f6f6;--wa-bg:#efeae2;--wa-in:#fff;--wa-out:#d9fdd3;--wa-text:#111b21;--wa-meta:#667781;--wa-green:#008069;
+  --r-lg:22px;--r-md:14px;--r-sm:10px;
 }
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#070d1a;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px;overflow-x:hidden}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#000;--surface:rgba(28,28,30,.72);--surface-solid:#1c1c1e;--elev:#2c2c2e;--fill:rgba(118,118,128,.24);
+  --text:#f5f5f7;--text-2:#c7c7cc;--text-3:#98989d;--line:rgba(255,255,255,.1);--line-2:rgba(255,255,255,.18);
+  --accent:#2997ff;--accent-soft:rgba(41,151,255,.16);
+  --green:#30d158;--green-soft:rgba(48,209,88,.14);
+  --amber:#ff9f0a;--amber-soft:rgba(255,159,10,.14);
+  --red:#ff453a;--red-soft:rgba(255,69,58,.14);
+  --purple:#bf5af2;--purple-soft:rgba(191,90,242,.16);
+  --neutral:#c7c7cc;--neutral-soft:rgba(118,118,128,.24);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-lg:0 0 0 1px rgba(255,255,255,.04),0 20px 50px -10px rgba(0,0,0,.7);
+  --flow-line:#3a3a3c;--flow-doc:#aeaeb2;
+  --wa-head:#1f2c34;--wa-bg:#0b141a;--wa-in:#1f2c34;--wa-out:#005c4b;--wa-text:#e9edef;--wa-meta:#8696a0;--wa-green:#00a884;
+}}
+:root[data-theme="dark"]{
+  --bg:#000;--surface:rgba(28,28,30,.72);--surface-solid:#1c1c1e;--elev:#2c2c2e;--fill:rgba(118,118,128,.24);
+  --text:#f5f5f7;--text-2:#c7c7cc;--text-3:#98989d;--line:rgba(255,255,255,.1);--line-2:rgba(255,255,255,.18);
+  --accent:#2997ff;--accent-soft:rgba(41,151,255,.16);
+  --green:#30d158;--green-soft:rgba(48,209,88,.14);
+  --amber:#ff9f0a;--amber-soft:rgba(255,159,10,.14);
+  --red:#ff453a;--red-soft:rgba(255,69,58,.14);
+  --purple:#bf5af2;--purple-soft:rgba(191,90,242,.16);
+  --neutral:#c7c7cc;--neutral-soft:rgba(118,118,128,.24);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-lg:0 0 0 1px rgba(255,255,255,.04),0 20px 50px -10px rgba(0,0,0,.7);
+  --flow-line:#3a3a3c;--flow-doc:#aeaeb2;
+  --wa-head:#1f2c34;--wa-bg:#0b141a;--wa-in:#1f2c34;--wa-out:#005c4b;--wa-text:#e9edef;--wa-meta:#8696a0;--wa-green:#00a884;
+}
 
-/* ── TOP BAR ── */
-.topbar{width:100%;max-width:1160px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#fff;letter-spacing:-1px;flex-shrink:0}
-.logo-name{font-size:14px;font-weight:800;color:#e2e8f0}
-.logo-sub{font-size:10px;color:#475569;margin-top:1px}
-.sc-tabs{display:flex;gap:6px;flex-wrap:wrap}
-.sct{padding:7px 15px;border-radius:20px;border:1.5px solid #1e3a5f;background:transparent;color:#64748b;cursor:pointer;font-size:11.5px;font-weight:700;transition:all .2s;white-space:nowrap}
-.sct.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
-.sct:hover:not(.active){border-color:#3b82f6;color:#93c5fd}
-.hint{font-size:10.5px;color:#334155;font-style:italic}
+html{font:100%/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;scroll-padding-top:64px}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background-color .4s ease,color .4s ease}
+body::before{content:"";position:fixed;inset:0 0 auto;height:720px;pointer-events:none;z-index:-1;
+  background:radial-gradient(60% 50% at 50% 0%,var(--accent-soft),transparent 70%)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--accent);text-decoration:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+.i{flex-shrink:0;display:block}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.92em}
 
-/* ── GRID ── */
-.grid{width:100%;max-width:1160px;display:grid;grid-template-columns:300px 1fr 320px;gap:12px;height:calc(100vh - 100px);min-height:580px}
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:20;background:var(--surface);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;height:52px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);font-weight:600;font-size:15px;letter-spacing:-.01em}
+.mark{width:28px;height:28px;border-radius:8px;background:var(--text);color:var(--bg);display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:-.02em}
+.nav nav{display:flex;gap:4px;margin-left:auto}
+.nav nav a{color:var(--text-2);font-size:13px;padding:6px 10px;border-radius:8px}
+.nav nav a:hover{color:var(--text);background:var(--fill)}
+.icon-btn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--text-2);transition:transform .1s ease-out,background-color .15s}
+.icon-btn:hover{background:var(--fill);color:var(--text)}
+.icon-btn:active{transform:scale(.94)}
 
-/* ── PHONE (LEFT) ── */
-.phone-wrap{display:flex;flex-direction:column}
-.phone{background:#111;border-radius:28px;border:2px solid #2a2a2a;overflow:hidden;display:flex;flex-direction:column;flex:1;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
-.phone-notch{background:#111;padding:10px 0 6px;display:flex;justify-content:center}
-.phone-notch-pill{width:60px;height:5px;background:#2a2a2a;border-radius:3px}
-.wa-bar{background:#075E54;padding:9px 12px;display:flex;align-items:center;gap:9px;flex-shrink:0}
-.wa-back{color:#25D366;font-size:18px;line-height:1}
-.wa-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
-.wa-info{flex:1;min-width:0}
-.wa-name{font-size:12.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wa-status{font-size:10px;color:rgba(255,255,255,0.65)}
-.wa-body{flex:1;overflow-y:auto;padding:10px 8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23ece5dd'/%3E%3C/svg%3E");background-color:#ECE5DD;display:flex;flex-direction:column;gap:6px}
-.wa-body::-webkit-scrollbar{width:3px}
-.wa-body::-webkit-scrollbar-thumb{background:#bbb;border-radius:2px}
-.wmsg{max-width:85%;padding:7px 10px 5px;border-radius:12px;font-size:12px;line-height:1.5;animation:popIn .25s ease;position:relative}
-.wmsg.out{background:#DCF8C6;align-self:flex-end;border-bottom-right-radius:3px;color:#111}
-.wmsg.in{background:#fff;align-self:flex-start;border-bottom-left-radius:3px;color:#111}
-.wmsg.sys{background:#fff;align-self:flex-end;border-bottom-right-radius:3px;color:#111;border-left:3px solid #25D366}
-.wtime{font-size:9px;color:#999;display:block;text-align:right;margin-top:3px}
-.wfile{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,0.06);border-radius:8px;padding:7px 9px;margin:2px 0}
-.wfile-ico{font-size:18px}
-.wfile-name{font-size:11px;font-weight:600;color:#075E54}
-.wfile-size{font-size:9px;color:#999}
-/* Typing indicator */
-.typing{background:#fff;align-self:flex-start;border-bottom-left-radius:3px;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:4px;animation:popIn .2s ease}
-.typing span{width:7px;height:7px;border-radius:50%;background:#999;animation:bounce 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-/* WA quick-reply buttons */
-.wa-replies{padding:8px;background:#ECE5DD;border-top:1px solid #d0c8bf;display:flex;flex-direction:column;gap:5px;flex-shrink:0}
-.wa-reply-btn{background:#fff;border:none;border-radius:20px;padding:9px 14px;font-size:12px;font-weight:700;color:#075E54;cursor:pointer;text-align:center;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;gap:6px}
-.wa-reply-btn:hover{background:#e8f5e9;transform:translateY(-1px)}
-.wa-reply-btn:disabled{opacity:0.5;cursor:default;transform:none}
-.wa-reply-btn.used{background:#f0f0f0;color:#999}
-.wa-bar-bottom{background:#075E54;padding:7px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.wa-input-fake{flex:1;background:rgba(255,255,255,0.15);border-radius:20px;padding:7px 12px;font-size:11px;color:rgba(255,255,255,0.5)}
-.wa-send{background:#25D366;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-/* WA caption */
-.panel-label{font-size:10px;font-weight:700;color:#475569;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;padding-left:2px}
+/* ── HERO ── */
+.hero{padding:clamp(56px,9vw,104px) 0 0;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.01em}
+.hero h1{font-size:clamp(2.5rem,6.4vw,4.75rem);line-height:1.03;letter-spacing:-.04em;font-weight:700;margin:16px auto 0;max-width:14ch}
+.hero h1 span{color:var(--text-3)}
+.hero .sub{font-size:clamp(1.05rem,1.6vw,1.25rem);line-height:1.5;letter-spacing:-.01em;color:var(--text-2);max-width:620px;margin:20px auto 0}
+.actions{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:32px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:999px;font-size:15px;font-weight:600;letter-spacing:-.01em;transition:transform .1s ease-out,background-color .2s,box-shadow .2s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 20px -6px var(--accent)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-link{color:var(--accent);padding:0 8px}
+.btn-link:hover .i{transform:translateX(2px)}
+.btn-link .i{transition:transform .2s cubic-bezier(.2,0,0,1)}
 
-/* ── SYSTEM PANEL (MIDDLE) ── */
-.sys-panel{background:#0f172a;border-radius:14px;border:1px solid #1e293b;display:flex;flex-direction:column;overflow:hidden}
-.sys-hdr{padding:13px 16px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.sys-title{font-size:13px;font-weight:800;color:#e2e8f0;display:flex;align-items:center;gap:7px}
-.sys-badge{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700}
-.sb-blue{background:#1e3a5f;color:#60a5fa}
-.sb-green{background:#14532d;color:#4ade80}
-.sb-amber{background:#451a03;color:#fbbf24}
-.sb-red{background:#450a0a;color:#f87171}
-.sys-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.sys-body::-webkit-scrollbar{width:3px}
-.sys-body::-webkit-scrollbar-thumb{background:#1e293b}
-/* System cards */
-.scard{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px;animation:slideUp .3s ease}
-.scard.done{border-color:#059669}
-.scard.warn{border-color:#d97706}
-.scard.err{border-color:#dc2626}
-.scard.proc{border-color:#2563eb}
-.scard-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.scard-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.ico-blue{background:#1e3a5f}
-.ico-green{background:#14532d}
-.ico-amber{background:#451a03}
-.ico-red{background:#450a0a}
-.scard-name{font-size:12px;font-weight:700;color:#e2e8f0;flex:1}
-.scard-st{padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700}
-.st-proc{background:#1e3a5f;color:#60a5fa}
-.st-done{background:#14532d;color:#4ade80}
-.st-warn{background:#451a03;color:#fbbf24}
-.st-err{background:#450a0a;color:#f87171}
-/* Conf bars */
-.conf-row{display:flex;align-items:center;gap:7px;padding:5px 8px;background:#0f172a;border-radius:5px;font-size:11px;margin-bottom:3px}
-.conf-name{flex:1;color:#cbd5e1}
-.conf-bar{height:4px;border-radius:2px;width:60px;background:#1e293b;overflow:hidden;flex-shrink:0}
-.cf{height:100%;border-radius:2px;transition:width .9s ease}
-.cf-h{background:#22c55e}
-.cf-l{background:#ef4444}
-.conf-pct{font-size:10px;width:28px;text-align:right}
-.cp-h{color:#4ade80}
-.cp-l{color:#f87171}
-/* Checklist */
-.ck{display:flex;flex-direction:column;gap:4px}
-.cki{font-size:11px;display:flex;align-items:flex-start;gap:6px;line-height:1.45}
-.cki.ok{color:#4ade80}
-.cki.miss{color:#f87171}
-.cki.warn{color:#fbbf24}
-.cki.info{color:#94a3b8}
-/* History box */
-.hbox{background:#0f172a;border-radius:7px;padding:9px;font-size:11px}
-.hrow{display:flex;justify-content:space-between;margin-bottom:4px}
-.hlbl{color:#475569}
-.hv{font-weight:700}
-.hv-ok{color:#4ade80}
-.hv-miss{color:#f87171}
-.hv-norm{color:#e2e8f0}
-/* Big action button */
-.sys-cta{margin:10px 12px 12px;padding:11px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:800;color:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
-.cta-blue{background:#2563eb}
-.cta-blue:hover{background:#1d4ed8}
-.cta-green{background:#059669}
-.cta-green:hover{background:#047857}
-.cta-amber{background:#d97706}
-.cta-amber:hover{background:#b45309}
-.cta-purple{background:#7c3aed}
-.cta-purple:hover{background:#6d28d9}
-.sys-cta:disabled{opacity:0.4;cursor:not-allowed}
+.flow{position:relative;height:clamp(240px,32vw,400px);margin:40px auto 0;max-width:1200px}
+.flow canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.flow.noflow{display:none}
+.flow-lbl{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--text-2);white-space:nowrap;pointer-events:none}
+.flow-lbl.bin{color:var(--text)}
+.flow-lbl small{display:block;font-weight:500;color:var(--text-3);font-size:11px}
+.preanim .hero [data-in],.preanim .flow{visibility:hidden}
 
-/* ── CA PANEL (RIGHT) ── */
-.ca-panel{background:#111827;border-radius:14px;border:1px solid #1f2937;display:flex;flex-direction:column;overflow:hidden}
-.ca-hdr{padding:13px 16px;border-bottom:1px solid #1f2937;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ca-title{font-size:13px;font-weight:800;color:#e2e8f0;display:flex;align-items:center;gap:7px}
-.ca-online{font-size:10px;color:#4ade80;background:#14532d;padding:2px 9px;border-radius:8px;font-weight:700}
-.ca-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
-.ca-body::-webkit-scrollbar{width:3px}
-.ca-body::-webkit-scrollbar-thumb{background:#1f2937}
-/* Notification cards */
-.ncard{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:12px;animation:slideUp .3s ease}
-.ncard.urgent{border-left:3px solid #f59e0b}
-.ncard.info{border-left:3px solid #3b82f6}
-.ncard.success{border-left:3px solid #22c55e}
-.ncard.remind{border-left:3px solid #8b5cf6}
-.ncard.neutral{border-left:3px solid #475569}
-.ntop{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.nav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
-.nname{font-size:12px;font-weight:700;color:#e2e8f0}
-.ntime{font-size:10px;color:#475569;margin-left:auto}
-.nbody{font-size:11.5px;color:#94a3b8;line-height:1.55}
-/* Verification card */
-.vcard{background:#1a0e00;border:1px solid #451a03;border-radius:8px;padding:10px;margin-top:9px}
-.vq{font-size:11.5px;color:#fbbf24;font-weight:700;margin-bottom:8px}
-.vopts{display:flex;gap:6px}
-.vopt{flex:1;padding:8px 5px;border:1.5px solid #2d1a00;border-radius:7px;text-align:center;cursor:pointer;transition:all .2s;font-size:11px;color:#94a3b8;line-height:1.4}
-.vopt:hover{border-color:#f59e0b;color:#fbbf24;background:#1a1000}
-.vopt small{display:block;font-size:9px;color:#475569;margin-top:2px}
-.vopt.chosen{border-color:#22c55e;color:#4ade80;background:#0d2818;pointer-events:none}
-.vopt.unchosen{opacity:.35;pointer-events:none}
-/* CA action button */
-.ca-btn{width:100%;padding:9px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;margin-top:9px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.ca-btn-green{background:#059669;color:#fff}
-.ca-btn-green:hover{background:#047857}
-.ca-btn-amber{background:#d97706;color:#fff}
-.ca-btn-amber:hover{background:#b45309}
-/* Empty state */
-.empty{color:#334155;font-size:12px;text-align:center;padding:30px 20px;line-height:1.6}
-/* Progress dots */
-.prog-dots{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.pdot{width:6px;height:6px;border-radius:50%;background:#1e293b;transition:all .3s}
-.pdot.active{background:#3b82f6;transform:scale(1.3)}
-.pdot.done{background:#22c55e}
+/* ── SECTION HEAD ── */
+section{padding:clamp(64px,8vw,112px) 0}
+.sh{max-width:680px;margin-bottom:32px}
+.sh .eyebrow{margin-bottom:10px}
+.sh h2{font-size:clamp(1.9rem,3.8vw,2.75rem);line-height:1.08;letter-spacing:-.03em;font-weight:700}
+.sh p{color:var(--text-2);font-size:17px;line-height:1.5;margin-top:12px}
 
-/* ── ANIMATIONS ── */
-@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.pulsing{animation:pulse 1.5s infinite}
+/* ── CONTROLS ── */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{position:relative;display:inline-flex;background:var(--fill);border-radius:12px;padding:3px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{position:relative;z-index:1;display:flex;align-items:center;gap:7px;padding:8px 14px;font-size:13px;font-weight:500;border-radius:9px;color:var(--text-2);white-space:nowrap;transition:color .2s}
+.seg button[aria-selected="true"]{color:var(--text);font-weight:600}
+.seg button:active{transform:scale(.97)}
+.seg .ind{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:9px;background:var(--elev);box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px var(--line)}
+.ctl-r{display:flex;align-items:center;gap:8px}
+.switch{display:inline-flex;align-items:center;gap:10px;height:36px;padding:0 6px 0 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text-2)}
+.switch:hover{background:var(--fill)}
+.switch .track{width:40px;height:24px;border-radius:12px;background:var(--fill);position:relative;transition:background-color .25s}
+.switch .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:transform .3s cubic-bezier(.3,1.3,.5,1)}
+.switch[aria-checked="true"]{color:var(--text)}
+.switch[aria-checked="true"] .track{background:var(--green)}
+.switch[aria-checked="true"] .knob{transform:translateX(16px)}
+.ghost{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text-2);transition:transform .1s ease-out}
+.ghost:hover{background:var(--fill);color:var(--text)}
+.ghost:active{transform:scale(.96)}
+.hint{display:flex;align-items:center;gap:8px;min-height:22px;font-size:14px;color:var(--text-2);margin-bottom:16px}
+.hint .i{color:var(--accent)}
+
+/* ── DEMO GRID ── */
+.grid{display:grid;grid-template-columns:320px minmax(0,1fr) 340px;gap:16px;height:680px}
+.panel{background:var(--surface);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 16px 12px;flex-shrink:0}
+.ph h3{font-size:15px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.ph h3 .i{color:var(--text-3)}
+.ph .pill{margin-left:auto}
+.pb{flex:1;overflow-y:auto;padding:4px 14px 14px;display:flex;flex-direction:column;gap:10px;min-height:0;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 calc(100% - 14px),transparent)}
+.pb::-webkit-scrollbar{width:0}
+.empty{margin:auto;text-align:center;color:var(--text-3);font-size:13px;line-height:1.5;max-width:240px;padding:24px 0}
+
+.pill{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;letter-spacing:.01em}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.t-accent{color:var(--accent);background:var(--accent-soft)}
+.t-green{color:var(--green);background:var(--green-soft)}
+.t-amber{color:var(--amber);background:var(--amber-soft)}
+.t-red{color:var(--red);background:var(--red-soft)}
+.t-purple{color:var(--purple);background:var(--purple-soft)}
+.t-neutral{color:var(--neutral);background:var(--neutral-soft)}
+
+/* stepper */
+.steps{list-style:none;display:flex;gap:6px;padding:0 16px 14px;border-bottom:1px solid var(--line);flex-shrink:0}
+.steps li{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.steps .bar{height:4px;border-radius:2px;background:var(--fill);overflow:hidden}
+.steps .bar i{display:block;height:100%;border-radius:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,0,0,1),background-color .3s}
+.steps .lbl{font-size:11px;font-weight:500;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s}
+.steps li[data-state="active"] .bar i{transform:scaleX(.5)}
+.steps li[data-state="active"] .lbl{color:var(--accent);font-weight:600}
+.steps li[data-state="warn"] .bar i{transform:scaleX(.5);background:var(--amber)}
+.steps li[data-state="warn"] .lbl{color:var(--amber);font-weight:600}
+.steps li[data-state="done"] .bar i{transform:scaleX(1);background:var(--green)}
+.steps li[data-state="done"] .lbl{color:var(--text-2)}
+
+/* system cards */
+.card{background:var(--elev);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--shadow-sm)}
+.card-h{display:flex;align-items:center;gap:10px}
+.card-h h3{font-size:13.5px;font-weight:600;letter-spacing:-.005em;flex:1;min-width:0}
+.tile{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;transition:background-color .3s,color .3s}
+.card-b{margin-top:10px}
+.ck{list-style:none;display:flex;flex-direction:column;gap:6px}
+.ck li{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.4;color:var(--text-2)}
+.ck li .i{margin-top:1px}
+.ck .ok .i{color:var(--green)}
+.ck .miss{color:var(--red)} .ck .miss .i{color:var(--red)}
+.ck .warn .i{color:var(--amber)}
+.ck .info .i{color:var(--text-3)}
+.ck.mono li span{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px}
+.conf{display:grid;grid-template-columns:minmax(0,1fr) 72px 36px;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;background:var(--fill);margin-bottom:4px;font-size:12px}
+.conf .cn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:var(--text-2)}
+.conf .cb{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.conf .cb i{display:block;height:100%;background:var(--green);transform:scaleX(var(--v,0));transform-origin:left;transition:transform .8s cubic-bezier(.2,0,0,1)}
+.conf .cp{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-3)}
+.conf[data-tone="green"] .cp{color:var(--green)}
+.conf[data-tone="red"] .cb i{background:var(--red)}
+.conf[data-tone="red"] .cp{color:var(--red)}
+.fine{font-size:11.5px;color:var(--text-3);margin-top:8px}
+.note-text{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 16px;font-size:12.5px;padding:10px 12px;border-radius:10px;background:var(--fill);margin:8px 0}
+.kv dt{color:var(--text-3)} .kv dd{text-align:right;font-weight:600}
+.kv .bad{color:var(--red)}
+
+/* CTA */
+.cta-wrap{padding:12px 14px 14px;flex-shrink:0;border-top:1px solid var(--line)}
+.cta{position:relative;overflow:hidden;width:100%;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#fff;transition:transform .1s ease-out,filter .2s}
+.cta:active{transform:scale(.98)}
+.cta:hover{filter:brightness(1.08)}
+.cta.t-accent{background:var(--accent);color:#fff}
+.cta.t-amber{background:var(--amber);color:#fff}
+.cta.t-green{background:var(--green);color:#fff}
+.cta.t-neutral{background:var(--text);color:var(--bg)}
+:root[data-theme="dark"] .cta.t-green,:root[data-theme="dark"] .cta.t-amber{color:#000}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta.t-green,:root:not([data-theme="light"]) .cta.t-amber{color:#000}}
+.arming::after{content:"";position:absolute;inset:0;background:currentColor;opacity:.16;transform:scaleX(0);transform-origin:left;animation:arm var(--d,1200ms) linear forwards;pointer-events:none}
+@keyframes arm{to{transform:scaleX(1)}}
+
+/* CA feed */
+.note{display:flex;gap:10px;background:var(--elev);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;box-shadow:var(--shadow-sm);position:relative}
+.note::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--tone,transparent)}
+.note.t-amber{--tone:var(--amber)} .note.t-green{--tone:var(--green)} .note.t-red{--tone:var(--red)} .note.t-purple{--tone:var(--purple)} .note.t-accent{--tone:var(--accent)}
+.note.t-amber,.note.t-green,.note.t-red,.note.t-purple,.note.t-accent{background:var(--elev);color:inherit}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.nb{flex:1;min-width:0}
+.nh{display:flex;align-items:baseline;gap:8px;font-size:13px}
+.nh time{margin-left:auto;font-size:11.5px;color:var(--text-3)}
+.nb p{font-size:12.5px;line-height:1.5;color:var(--text-2);margin-top:3px}
+.nb p b{color:var(--text)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.opt{position:relative;overflow:hidden;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-solid);display:flex;flex-direction:column;gap:2px;transition:transform .1s ease-out,border-color .2s,background-color .2s,opacity .25s}
+.opt b{font-size:13px;font-weight:600;color:var(--text)}
+.opt small{font-size:11.5px;color:var(--text-3)}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:active:not(:disabled){transform:scale(.97)}
+.opt.wide{grid-column:1/-1;flex-direction:row;align-items:center;gap:8px;margin-top:10px;width:100%;color:var(--green)}
+.opt.chosen{border-color:var(--green);background:var(--green-soft)}
+.opt.dim{opacity:.4}
+.opt:disabled{cursor:default}
+.autotag{display:flex;gap:6px;align-items:flex-start;margin-top:8px;font-size:11.5px;line-height:1.4;color:var(--purple)}
+.autotag .i{margin-top:1px}
+.summary{background:var(--elev);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;box-shadow:var(--shadow-sm)}
+.summary h4{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+.summary h4 .i{color:var(--accent)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.metric{background:var(--fill);border-radius:10px;padding:10px 12px}
+.metric b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.metric span{font-size:11.5px;color:var(--text-3)}
+.avs{display:flex;margin-left:auto}
+.avs .av{width:24px;height:24px;font-size:9px;border:2px solid var(--surface-solid);margin-left:-6px}
+
+/* ── PHONE ── */
+.phone{height:100%;border-radius:48px;padding:10px;background:#1d1d1f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),var(--shadow-lg);min-height:0}
+.screen{height:100%;border-radius:38px;overflow:hidden;display:flex;flex-direction:column;background:var(--wa-bg);color:var(--wa-text);position:relative}
+.sbar{display:flex;align-items:center;justify-content:space-between;padding:12px 26px 4px;font-size:13px;font-weight:600;background:var(--wa-head);flex-shrink:0}
+.island{width:88px;height:24px;border-radius:14px;background:#000}
+.sbar .sig{display:flex;gap:4px;align-items:center}
+.wa-h{display:flex;align-items:center;gap:10px;padding:6px 12px 10px;background:var(--wa-head);border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0}
+.wa-h .back{color:var(--wa-green)}
+.wa-h .av{width:34px;height:34px;font-size:12px}
+.wa-h .who{flex:1;min-width:0}
+.wa-h b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-h small{font-size:11.5px;color:var(--wa-meta)}
+.chat{flex:1;overflow-y:auto;padding:10px 10px 12px;display:flex;flex-direction:column;gap:5px;min-height:0}
+.chat::-webkit-scrollbar{width:0}
+.b{max-width:84%;padding:6px 9px 5px;border-radius:10px;font-size:13.5px;line-height:1.38;box-shadow:0 1px .5px rgba(11,20,26,.13);word-wrap:break-word}
+.b.in{align-self:flex-start;background:var(--wa-in);border-top-left-radius:3px}
+.b.out{align-self:flex-end;background:var(--wa-out);border-top-right-radius:3px}
+.b .meta{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:10.5px;color:var(--wa-meta);margin-top:2px}
+.b .meta .ticks{color:#53bdeb}
+.autolbl{font-size:9.5px;font-weight:600;padding:0 5px;border-radius:4px;background:rgba(0,0,0,.06);margin-right:auto}
+.day{align-self:center;font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:8px;background:var(--wa-in);color:var(--wa-meta);margin:6px 0;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.fc{display:flex;align-items:center;gap:9px;padding:8px;border-radius:8px;background:rgba(0,0,0,.05);margin:2px 0}
+.fc .ext{width:30px;height:36px;border-radius:5px;display:grid;place-items:end center;padding-bottom:4px;font-size:8.5px;font-weight:700;color:#fff;flex-shrink:0;background:#e5484d}
+.fc .ext.xlsx{background:#1d7a46}
+.fc b{display:block;font-size:12.5px;font-weight:500;line-height:1.3;word-break:break-all}
+.fc small{font-size:10.5px;color:var(--wa-meta)}
+.email .em-h{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--wa-green);margin-bottom:4px}
+.email .em-s{font-weight:600;margin-bottom:3px}
+.email p{color:var(--wa-meta);font-size:12.5px;margin-bottom:6px}
+.b.typing{display:flex;gap:4px;padding:11px 13px}
+.b.typing i{width:7px;height:7px;border-radius:50%;background:var(--wa-meta);opacity:.6;animation:dot 1.2s infinite}
+.b.typing i:nth-child(2){animation-delay:.15s}.b.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.wa-foot{display:flex;align-items:center;gap:8px;padding:8px 10px 14px;background:var(--wa-head);flex-shrink:0}
+.wa-in{flex:1;height:34px;border-radius:17px;background:var(--wa-in);display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--wa-meta);border:1px solid rgba(0,0,0,.06)}
+.wa-mic{width:34px;height:34px;border-radius:50%;background:var(--wa-green);color:#fff;display:grid;place-items:center}
+.replies{display:grid;gap:6px;padding:10px 10px 14px;background:var(--wa-head);flex-shrink:0}
+.replies p{font-size:11px;font-weight:600;color:var(--wa-meta);text-align:center;letter-spacing:.02em}
+.rbtn{position:relative;overflow:hidden;height:40px;border-radius:20px;background:var(--wa-in);color:var(--wa-green);font-size:13.5px;font-weight:600;box-shadow:0 1px .5px rgba(11,20,26,.13);transition:transform .1s ease-out,opacity .25s}
+.rbtn:active:not(:disabled){transform:scale(.97)}
+.rbtn.chosen{background:var(--wa-green);color:#fff}
+.rbtn.dim{opacity:.4}
+
+/* ── ROADMAP ── */
+.rm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.rm article{background:var(--surface-solid);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px}
+.rm article.wide{grid-column:span 2}
+.rm .tile{width:40px;height:40px;border-radius:12px}
+.rm h3{font-size:17px;font-weight:600;letter-spacing:-.015em;margin-top:6px}
+.rm p{font-size:14.5px;line-height:1.5;color:var(--text-2)}
+.rm .tag{margin-top:auto;padding-top:8px;font-size:12px;font-weight:600;color:var(--text-3)}
+footer{border-top:1px solid var(--line);padding:28px 0 40px;font-size:13px;color:var(--text-3)}
+footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
+
+/* ── RESPONSIVE ── */
+@media (max-width:1100px){
+  .grid{grid-template-columns:300px minmax(0,1fr);height:auto}
+  .grid>.phone,.grid>.sys{height:640px}
+  .grid>.dash{grid-column:1/-1;height:460px}
+  .rm{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .grid{grid-template-columns:1fr}
+  .grid>.phone{height:600px;max-width:360px;width:100%;justify-self:center}
+  .grid>.sys{height:600px}
+  .grid>.dash{height:520px}
+  .rm{grid-template-columns:1fr}
+  .rm article.wide{grid-column:auto}
+  .nav nav{display:none}
+  .ctl-r{width:100%;justify-content:space-between}
+  .steps .lbl{font-size:10px}
+}
+
+/* ── A11Y PREFERENCES ── */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .b.typing i{animation:none}
+  .conf .cb i,.steps .bar i,.switch .knob{transition:none}
+}
+@media (prefers-reduced-transparency:reduce){
+  .panel,.nav{background:var(--surface-solid);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media (prefers-contrast:more){
+  :root{--line:rgba(0,0,0,.35);--line-2:rgba(0,0,0,.5)}
+  .panel,.nav{background:var(--surface-solid)}
+}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="logo">
-    <div class="logo-ico">CA</div>
-    <div><div class="logo-name">Team CA</div><div class="logo-sub">Document Automation System</div></div>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark">LH</span>Ledger Hackers</a>
+    <nav aria-label="Sections"><a href="#demo">Live demo</a><a href="#roadmap">Roadmap</a></nav>
+    <button class="icon-btn" id="themeBtn" aria-label="Theme: automatic"></button>
   </div>
-  <div class="sc-tabs">
-    <button class="sct active" onclick="loadSc(0)">👨‍👩‍👦 Multi-Party Family</button>
-    <button class="sct" onclick="loadSc(1)">🧠 Smart Detection</button>
-    <button class="sct" onclick="loadSc(2)">⏰ Reminder &amp; Delivery</button>
+</header>
+
+<main id="top">
+  <div class="hero wrap">
+    <p class="eyebrow" data-in>Document automation for CA firms</p>
+    <h1 data-in>Client documents in. <span>Filed returns out.</span></h1>
+    <p class="sub" data-in>Files arrive on WhatsApp and email. The system works out whose they are, spots what's missing, chases deadlines and gives your team only the decisions that need a person.</p>
+    <div class="actions" data-in>
+      <a class="btn btn-primary" href="#demo" id="heroCta"></a>
+      <a class="btn btn-link" href="#roadmap" id="heroLink"></a>
+    </div>
   </div>
-  <div class="hint" id="hintTxt">👆 Click the blue button to start</div>
-</div>
+  <div class="flow wrap" aria-hidden="true">
+    <canvas id="flowCanvas"></canvas>
+    <div class="flow-lbl" data-at="src">WhatsApp &amp; email<small>Client uploads</small></div>
+    <div class="flow-lbl" data-at="core">Classifier<small>Owner · type · year</small></div>
+    <div class="flow-lbl bin" data-at="b0">ITR</div>
+    <div class="flow-lbl bin" data-at="b1">GST</div>
+    <div class="flow-lbl bin" data-at="b2">Bank</div>
+  </div>
 
-<!-- THREE PANEL GRID -->
-<div class="grid">
+  <section id="demo" data-reveal>
+    <div class="wrap">
+      <div class="sh" data-rv>
+        <p class="eyebrow">Live demo · sample data</p>
+        <h2>Watch the whole workflow run.</h2>
+        <p>Pick a scenario. Click through each step yourself, or switch on Autopilot to let the system make the routine decisions it has learned.</p>
+      </div>
 
-  <!-- LEFT: WhatsApp Phone -->
-  <div class="phone-wrap">
-    <div class="panel-label" id="leftLabel">📱 Client WhatsApp / Email</div>
-    <div class="phone">
-      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
-      <div class="wa-bar" id="waBar">
-        <div class="wa-back">‹</div>
-        <div class="wa-av" id="waAv" style="background:#25D366">RM</div>
-        <div class="wa-info">
-          <div class="wa-name" id="waName">Rajesh Mehta</div>
-          <div class="wa-status" id="waStatus">WhatsApp</div>
+      <div class="controls" data-rv>
+        <div class="seg" role="tablist" aria-label="Scenario" id="seg">
+          <span class="ind" aria-hidden="true"></span>
         </div>
-        <div style="margin-left:auto;font-size:18px">⋮</div>
+        <div class="ctl-r">
+          <button class="switch" role="switch" aria-checked="false" id="autoBtn">Autopilot<span class="track"><span class="knob"></span></span></button>
+          <button class="ghost" id="replayBtn"></button>
+        </div>
       </div>
-      <div class="wa-body" id="waBody"></div>
-      <div class="wa-replies" id="waReplies" style="display:none"></div>
-      <div class="wa-bar-bottom">
-        <div class="wa-input-fake">Type a message...</div>
-        <div class="wa-send">🎙</div>
+      <p class="hint" id="hint" aria-live="polite" data-rv></p>
+
+      <div class="grid" data-rv>
+        <div class="phone" role="region" aria-label="Client chat">
+          <div class="screen">
+            <div class="sbar"><span>9:41</span><span class="island"></span><span class="sig" id="sig"></span></div>
+            <div class="wa-h">
+              <span class="back" id="waBack"></span>
+              <span class="av" id="waAv">RM</span>
+              <span class="who"><b id="waName">Rajesh Mehta</b><small id="waStatus">WhatsApp</small></span>
+            </div>
+            <div class="chat" id="chat"></div>
+            <div class="wa-foot" id="waFoot"><span class="wa-in">Message</span><span class="wa-mic" id="waMic"></span></div>
+            <div class="replies" id="replies" hidden></div>
+          </div>
+        </div>
+
+        <div class="panel sys" role="region" aria-label="System pipeline">
+          <div class="ph"><h3 id="sysTitle">Pipeline</h3><span class="pill t-accent" id="badge">Monitoring</span></div>
+          <ol class="steps" id="steps"></ol>
+          <div class="pb" id="sys"></div>
+          <div class="cta-wrap" id="ctaWrap" hidden></div>
+        </div>
+
+        <div class="panel dash" role="region" aria-label="CA team dashboard">
+          <div class="ph"><h3 id="dashTitle">CA team</h3>
+            <span class="avs" aria-label="3 online"><span class="av" style="background:#ff9f0a">DS</span><span class="av" style="background:#30d158">PJ</span><span class="av" style="background:#0a84ff">AK</span></span>
+          </div>
+          <div class="pb" id="feed"></div>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- MIDDLE: System Panel -->
-  <div class="sys-panel">
-    <div class="sys-hdr">
-      <div class="sys-title">⚙️ System Intelligence</div>
-      <div class="sys-badge sb-blue" id="sysBadge">Monitoring</div>
+  <section id="roadmap" data-reveal>
+    <div class="wrap">
+      <div class="sh" data-rv>
+        <p class="eyebrow">Roadmap</p>
+        <h2>From demo to a firm that runs itself.</h2>
+        <p>The demo is scripted. These are the pieces that make each step real, in the order we'd build them.</p>
+      </div>
+      <div class="rm" id="rm"></div>
     </div>
-    <div class="sys-body" id="sysBody">
-      <div class="empty">Select a scenario above to begin the demo.</div>
-    </div>
-    <button class="sys-cta cta-blue" id="sysCta" onclick="ctaClick()" style="display:none">▶ Start Demo</button>
-  </div>
+  </section>
+</main>
 
-  <!-- RIGHT: CA Team Panel -->
-  <div class="ca-panel">
-    <div class="ca-hdr">
-      <div class="ca-title">🏢 CA Team Dashboard</div>
-      <div class="ca-online" id="caOnline">3 online</div>
-    </div>
-    <div class="ca-body" id="caBody">
-      <div class="empty">CA team notifications appear here as the system processes client submissions.</div>
-    </div>
-  </div>
+<footer><div class="wrap"><span>Ledger Hackers · Document automation demo</span><span>All names, files and numbers are sample data.</span></div></footer>
 
-</div>
+<script type="module">
+// ─── ICONS (Lucide paths) ────────────────────────────────────────────────
+const P = {
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
+  dot:'<circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
+  scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/>',
+  folder:'<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>',
+  history:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  msg:'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  sparkles:'<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',
+  zap:'<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+  rotate:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  merge:'<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m9 12 2 2 4-4"/>',
+  brain:'<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M12 5v13"/>',
+  pipeline:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M10 6.5h4a3 3 0 0 1 3 3V14"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>', play:'<path d="m6 3 14 9-14 9z"/>',
+  back:'<path d="m15 18-6-6 6-6"/>', mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  auto:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+  wifi:'<path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/>',
+  ticks:'<path d="M2 12.5 6 16.5 14 7.5M10 15l1.5 1.5L20 7.5"/>',
+};
+const ico = (n, s = 16) => `<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
 
-<script>
-// ─── HELPERS ────────────────────────────────────────────────────────────────
+const $ = s => document.querySelector(s);
+const el = (tag, cls = '', html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-const delay = ms => new Promise(r => setTimeout(r, ms));
+// static icons
+$('#heroCta').innerHTML = `${ico('play', 14)}Run the live demo`;
+$('#heroLink').innerHTML = `What's next${ico('arrow', 16)}`;
+$('#replayBtn').innerHTML = `${ico('rotate', 15)}Replay`;
+$('#sysTitle').insertAdjacentHTML('afterbegin', ico('pipeline', 16));
+$('#dashTitle').insertAdjacentHTML('afterbegin', ico('users', 16));
+$('#waBack').innerHTML = ico('back', 22);
+$('#waMic').innerHTML = ico('mic', 16);
+$('#sig').innerHTML = ico('wifi', 14);
 
-const $ = id => document.getElementById(id);
-
-function scrollWA() {
-  const b = $('waBody'); if(b) b.scrollTop = b.scrollHeight;
+// ─── MOTION: critically damped springs (Apple default), WAAPI fallback ──
+let M = null;
+import('https://cdn.jsdelivr.net/npm/motion@11.11.13/+esm').then(m => (M = m)).catch(() => {});
+function enter(node, { y = 10, scale = .98 } = {}) {
+  if (reduce.matches) { node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160 }); return; }
+  if (M) M.animate(node, { opacity: [0, 1], y: [y, 0], scale: [scale, 1] }, { type: 'spring', bounce: 0, duration: .4 });
+  else node.animate([{ opacity: 0, transform: `translateY(${y}px) scale(${scale})` }, { opacity: 1, transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.2,0,0,1)' });
 }
-
-function showTyping() {
-  const b = $('waBody');
-  const t = document.createElement('div');
-  t.className = 'typing'; t.id = 'wa-typing';
-  t.innerHTML = '<span></span><span></span><span></span>';
-  b.appendChild(t); scrollWA();
+function bump(node) {
+  if (reduce.matches) return;
+  if (M) M.animate(node, { scale: [1.015, 1] }, { type: 'spring', bounce: 0, duration: .35 });
 }
+const scrollEnd = box => box.scrollTo({ top: box.scrollHeight, behavior: reduce.matches ? 'auto' : 'smooth' });
 
-function hideTyping() {
-  const t = $('wa-typing'); if(t) t.remove();
+// ─── THEME ──────────────────────────────────────────────────────────────
+const themes = ['auto', 'light', 'dark'];
+const themeIcon = { auto: 'auto', light: 'sun', dark: 'moon' };
+function paintThemeBtn() {
+  const t = document.documentElement.dataset.theme || 'auto';
+  $('#themeBtn').innerHTML = ico(themeIcon[t], 18);
+  $('#themeBtn').setAttribute('aria-label', `Theme: ${t === 'auto' ? 'automatic' : t}. Change theme`);
 }
+$('#themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme || 'auto';
+  const next = themes[(themes.indexOf(cur) + 1) % 3];
+  if (next === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = next;
+  try { next === 'auto' ? localStorage.removeItem('theme') : localStorage.setItem('theme', next); } catch (e) {}
+  paintThemeBtn(); window.dispatchEvent(new Event('themechange'));
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => window.dispatchEvent(new Event('themechange')));
+paintThemeBtn();
 
-async function waMsg(html, side, ms = 0) {
-  if (ms > 0) {
-    showTyping(); await delay(ms); hideTyping();
-  }
-  const b = $('waBody');
-  const d = document.createElement('div');
-  d.className = 'wmsg ' + side;
-  d.innerHTML = html;
-  b.appendChild(d); scrollWA();
-  return d;
-}
+// ─── RUN ENGINE ─────────────────────────────────────────────────────────
+// Every async step checks runId so switching scenario mid-run cancels cleanly.
+class Cancel extends Error {}
+let runId = 0, autopilot = false, pending = null, run = null, cur = 0;
+const sleep = ms => { const id = runId; return new Promise((res, rej) => setTimeout(() => (id === runId ? res() : rej(new Cancel())), reduce.matches ? ms * .5 : ms)); };
 
-function waTime(t = '') {
-  const now = new Date();
-  const s = t || now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  return `<span class="wtime">${s}</span>`;
-}
-
-function fileMsg(name, size = '') {
-  return `<div class="wfile"><div class="wfile-ico">📄</div><div><div class="wfile-name">${name}</div>${size?`<div class="wfile-size">${size}</div>`:''}</div></div>`;
-}
-
-function setSysBadge(txt, cls) {
-  const b = $('sysBadge'); b.textContent = txt; b.className = 'sys-badge ' + cls;
-}
-
-function addSysCard(id, icoChar, icoCls, name, stTxt, stCls, bodyHtml, cardCls = '') {
-  const old = $(id); if(old) old.remove();
-  const c = document.createElement('div');
-  c.className = 'scard ' + cardCls; c.id = id;
-  c.innerHTML = `<div class="scard-top"><div class="scard-ico ${icoCls}">${icoChar}</div><div class="scard-name">${name}</div><div class="scard-st ${stCls}">${stTxt}</div></div>${bodyHtml}`;
-  $('sysBody').appendChild(c); scrollSys();
-}
-
-function scrollSys() { const b = $('sysBody'); b.scrollTop = b.scrollHeight; }
-function scrollCA() { const b = $('caBody'); b.scrollTop = b.scrollHeight; }
-
-function updateSysCard(id, stTxt, stCls, bodyHtml, cardCls) {
-  const c = $(id); if(!c) return;
-  c.className = 'scard ' + cardCls;
-  const st = c.querySelector('.scard-st'); if(st){st.textContent=stTxt;st.className='scard-st '+stCls;}
-  const top = c.querySelector('.scard-top');
-  const existing = c.querySelector('.scard-body');
-  if(existing) existing.remove();
-  const bd = document.createElement('div');
-  bd.className = 'scard-body'; bd.innerHTML = bodyHtml;
-  c.appendChild(bd);
-}
-
-function showCta(txt, cls, fn) {
-  const b = $('sysCta');
-  b.textContent = txt; b.className = 'sys-cta ' + cls;
-  b.style.display = 'flex'; b.disabled = false;
-  b._fn = fn;
-}
-
-function hideCta() { $('sysCta').style.display = 'none'; }
-
-function ctaClick() {
-  const b = $('sysCta'); if(b._fn){ b.disabled = true; b._fn(); }
-}
-
-function addCACard(id, type, avTxt, avColor, name, time, bodyHtml, extraHtml = '') {
-  const old = $(id); if(old) old.remove();
-  const c = document.createElement('div');
-  c.className = 'ncard ' + type; c.id = id;
-  c.innerHTML = `<div class="ntop"><div class="nav" style="background:${avColor}">${avTxt}</div><div class="nname">${name}</div><div class="ntime">${time}</div></div><div class="nbody">${bodyHtml}</div>${extraHtml}`;
-  $('caBody').appendChild(c); scrollCA();
-}
-
-function clearCA() { $('caBody').innerHTML = ''; }
-function clearSys() { $('sysBody').innerHTML = ''; hideCta(); }
-function clearWA() { $('waBody').innerHTML = ''; setReplies([]); }
-
-function setReplies(buttons) {
-  const r = $('waReplies');
-  if(!buttons || buttons.length === 0){ r.style.display='none'; r.innerHTML=''; return; }
-  r.style.display = 'flex'; r.style.flexDirection = 'column'; r.style.gap = '5px'; r.style.padding = '8px';
-  r.innerHTML = buttons.map(b =>
-    `<button class="wa-reply-btn" onclick="(${b.fn})(this)">${b.label}</button>`
-  ).join('');
-}
-
-function setWAContact(init, name, status, color) {
-  $('waAv').textContent = init; $('waAv').style.background = color || '#25D366';
-  $('waName').textContent = name; $('waStatus').textContent = status;
-}
-
-function hint(txt) { $('hintTxt').textContent = txt; }
-
-// ─── SCENARIO STATE ────────────────────────────────────────────────────────
-
-let currentSc = 0;
-
-function loadSc(i) {
-  currentSc = i;
-  document.querySelectorAll('.sct').forEach((t,j) => t.classList.toggle('active', j===i));
-  clearWA(); clearSys(); clearCA();
-  setSysBadge('Monitoring', 'sb-blue');
-  scenarios[i].init();
-}
-
-// ─── SCENARIO 1: MULTI-PARTY FAMILY ────────────────────────────────────────
-
-function sc0_init() {
-  setWAContact('RM', 'Rajesh Mehta', 'Email + WhatsApp', '#1a8cff');
-  hint('👆 Click Start to process Rajesh\'s email');
-
-  // Show email card in WA (as quoted message)
-  const b = $('waBody');
-  b.innerHTML = `
-    <div style="background:#f0f4ff;border-left:3px solid #1a8cff;border-radius:8px;padding:10px;margin:6px 0;font-size:11px;color:#333">
-      <div style="font-size:10px;color:#1a8cff;font-weight:700;margin-bottom:5px">📧 Email received from rajesh.mehta@gmail.com</div>
-      <div style="font-weight:700;margin-bottom:4px">Documents – Mehta Family ITR 2024-25</div>
-      <div style="color:#666;margin-bottom:8px">Hi, please find attached the documents for this year's filing for myself and my wife.</div>
-      ${fileMsg('ITR_Rajesh_2024.pdf','245 KB')}
-      ${fileMsg('Form16_Priya.pdf','180 KB')}
-      ${fileMsg('Tally_ABCPvt.xlsx','312 KB')}
-      ${fileMsg('Bank_SBI_Rajesh.pdf','98 KB')}
-    </div>
-    <div style="text-align:center;font-size:10px;color:#999;margin:4px 0;">4 attachments received</div>`;
-  scrollWA();
-
-  $('sysBody').innerHTML = `<div class="scard proc"><div class="scard-top"><div class="scard-ico ico-blue">📨</div><div class="scard-name">Email Received</div><div class="scard-st st-proc pulsing">Waiting...</div></div><div class="ck" style="margin-top:6px"><div class="cki info">4 attachments detected</div><div class="cki info">Sender: rajesh.mehta@gmail.com</div><div class="cki info">Subject: Mehta Family ITR 2024-25</div></div></div>`;
-
-  showCta('⚙️ Process This Email', 'cta-blue', sc0_step1);
-}
-
-async function sc0_step1() {
-  hint('System is analysing files and detecting owners...');
-  hideCta();
-  setSysBadge('Analysing...', 'sb-blue');
-  await delay(300);
-
-  // System: show name detection with loading animation
-  $('sysBody').innerHTML = '';
-  addSysCard('c0', '🔍', 'ico-blue', 'Name & Owner Detection', '⟳ Scanning', 'st-proc', `
-    <div class="conf-row"><span class="conf-name">ITR_Rajesh_2024.pdf</span><div class="conf-bar"><div class="cf cf-h" style="width:0%" id="b1"></div></div><span class="conf-pct cp-h" id="p1">—</span></div>
-    <div class="conf-row"><span class="conf-name">Form16_Priya.pdf</span><div class="conf-bar"><div class="cf cf-h" style="width:0%" id="b2"></div></div><span class="conf-pct cp-h" id="p2">—</span></div>
-    <div class="conf-row"><span class="conf-name">Tally_ABCPvt.xlsx</span><div class="conf-bar"><div class="cf cf-l" style="width:0%" id="b3"></div></div><span class="conf-pct cp-l" id="p3">—</span></div>
-    <div class="conf-row"><span class="conf-name">Bank_SBI_Rajesh.pdf</span><div class="conf-bar"><div class="cf cf-h" style="width:0%" id="b4"></div></div><span class="conf-pct cp-h" id="p4">—</span></div>
-    <div style="font-size:10px;color:#475569;margin-top:6px;">Above 85% = auto-classify &nbsp;|&nbsp; Below = CA review</div>`, 'proc');
-
-  // Animate bars
-  await delay(600);
-  [['b1','p1','97%',97],['b2','p2','95%',95],['b4','p4','99%',99]].forEach(([bi,pi,pct,w]) => {
-    setTimeout(() => { const el = $(bi); if(el) el.style.width = w+'%'; const pel = $(pi); if(pel) pel.textContent = pct; }, 200);
+// Resolves when the user clicks one of btns; Autopilot clicks btns[autoIdx] after `delay`.
+function waitFor(btns, autoIdx = 0, delay = 1500, counts = true) {
+  const id = runId;
+  return new Promise((res, rej) => {
+    let done = false, timer;
+    const finish = (i, auto) => {
+      if (done || id !== runId) return; done = true; clearTimeout(timer); pending = null;
+      btns.forEach((b, j) => { b.disabled = true; b.classList.remove('arming'); b.classList.add(j === i ? 'chosen' : 'dim'); });
+      if (counts) auto ? run.autoDecisions++ : run.human++;
+      res({ i, auto });
+    };
+    btns.forEach((b, i) => b.addEventListener('click', () => finish(i, false), { once: true }));
+    const arm = () => {
+      const b = btns[autoIdx]; b.style.setProperty('--d', delay + 'ms'); b.classList.add('arming');
+      timer = setTimeout(() => finish(autoIdx, true), delay);
+    };
+    pending = { arm, cancel: () => { clearTimeout(timer); btns[autoIdx].classList.remove('arming'); }, rej };
+    if (autopilot) arm();
   });
-  await delay(800);
-  const b3 = $('b3'); if(b3) b3.style.width = '35%';
-  const p3 = $('p3'); if(p3) { p3.textContent = '35%'; p3.className = 'conf-pct cp-l'; }
-  await delay(1000);
+}
 
-  // Show result
-  const c0 = $('c0');
-  if(c0){
-    c0.className = 'scard warn';
-    const st = c0.querySelector('.scard-st'); if(st){st.textContent='⚠ 1 Needs Review';st.className='scard-st st-warn';}
+const $chat = $('#chat'), $sys = $('#sys'), $feed = $('#feed');
+const hint = (t, icon = 'arrow') => { $('#hint').innerHTML = `${ico(icon, 15)}<span>${t}</span>`; };
+const badge = (t, tone) => { const b = $('#badge'); b.className = 'pill t-' + tone; b.textContent = t; };
+function stage(i, state) {
+  const li = $('#steps').children[i]; if (!li) return;
+  li.dataset.state = state;
+  li.toggleAttribute('aria-current', state === 'active' || state === 'warn');
+  if (state === 'done') run.auto++;
+}
+function setContact(initials, name, status, color) {
+  $('#waAv').textContent = initials; $('#waAv').style.background = color;
+  $('#waName').textContent = name; $('#waStatus').textContent = status;
+}
+
+// chat
+const fileChip = (name, size) => { const ext = name.split('.').pop(); return `<div class="fc"><span class="ext ${ext}">${ext.toUpperCase()}</span><span><b>${name}</b><small>${size} · ${ext.toUpperCase()}</small></span></div>`; };
+const day = t => { const d = el('div', 'day', t); $chat.append(d); };
+function bubble(html, who, time, auto) {
+  const b = el('div', `b ${who}`, `${html}<span class="meta">${auto ? '<span class="autolbl">Auto</span>' : ''}${time}${who === 'out' ? `<span class="ticks">${ico('ticks', 15)}</span>` : ''}</span>`);
+  b.style.transformOrigin = who === 'out' ? '100% 0' : '0 0';
+  $chat.append(b); return b;
+}
+async function chat(html, who, { typing = 0, time = '', auto = who === 'out' } = {}) {
+  if (typing) {
+    const t = el('div', `b typing ${who}`, '<i></i><i></i><i></i>');
+    $chat.append(t); scrollEnd($chat); enter(t, { y: 4, scale: .9 });
+    try { await sleep(typing); } finally { t.remove(); }
   }
-  setSysBadge('⚠ Review Needed', 'sb-amber');
-  await delay(400);
-
-  // Add classification result card
-  addSysCard('c1', '✅', 'ico-green', '3 Files Auto-Classified', '✓ Done', 'st-done', `
-    <div class="ck">
-      <div class="cki ok">✓ ITR_Rajesh_2024.pdf → Rajesh Mehta (ITR)</div>
-      <div class="cki ok">✓ Form16_Priya.pdf → Priya Mehta (Form 16)</div>
-      <div class="cki ok">✓ Bank_SBI_Rajesh.pdf → Rajesh Mehta (Bank)</div>
-    </div>`, 'done');
-
-  await delay(400);
-  addSysCard('c2', '⚠️', 'ico-amber', 'Tally_ABCPvt.xlsx — Unclear', '⚠ CA Needed', 'st-warn', `
-    <div class="hbox"><div style="color:#fbbf24;margin-bottom:5px;font-weight:600;">Could not identify owner with confidence</div><div style="color:#94a3b8;font-size:11px;">Multiple matches found in client database. Rajesh Mehta has both a personal account and is Director of ABC Pvt Ltd.</div></div>`, 'warn');
-
-  await delay(500);
-
-  // CA notification with verification buttons
-  clearCA();
-  addCACard('n0', 'urgent', 'DS', '#d97706', 'Dhruv Shah', 'Just now',
-    '🔍 Verification needed from you:<br><strong>Tally_ABCPvt.xlsx</strong> — cannot auto-identify client. 35% confidence only.',
-    `<div class="vcard"><div class="vq">Who does this file belong to?</div><div class="vopts">
-      <div class="vopt" onclick="sc0_caConfirm(this,'Rajesh Mehta','Personal Account','#3b82f6')">Rajesh Mehta<small>Personal Account</small></div>
-      <div class="vopt" onclick="sc0_caConfirm(this,'ABC Pvt Ltd','Company – Director: Rajesh','#7c3aed')">ABC Pvt Ltd<small>Company Account</small></div>
-    </div></div>`);
-
-  hint('👆 Dhruv Shah needs to confirm: click one option on the right →');
+  const b = bubble(html, who, time, auto); scrollEnd($chat); enter(b, { y: 6, scale: .92 });
 }
 
-async function sc0_caConfirm(el, name, label, color) {
-  // Mark the selected option
-  el.classList.add('chosen');
-  el.innerHTML = `${name}<small>✓ Confirmed</small>`;
-  const opts = el.parentElement.querySelectorAll('.vopt');
-  opts.forEach(o => { if(o !== el) o.classList.add('unchosen'); });
-  hint('Great! System updating classification and notifying client...');
-  await delay(500);
-
-  // Update system card
-  const c2 = $('c2'); if(c2){
-    c2.className = 'scard done';
-    const st = c2.querySelector('.scard-st'); if(st){st.textContent='✓ Resolved';st.className='scard-st st-done';}
-    const bd = c2.querySelector('.scard-body') || c2.querySelector('.hbox');
-    if(bd) bd.innerHTML = `<div class="ck"><div class="cki ok">✓ Tally_ABCPvt.xlsx → ${name} (${label})</div><div class="cki ok">✓ Confirmed by: Dhruv Shah</div></div>`;
+// system cards
+const rows = (list, mono) => `<ul class="ck${mono ? ' mono' : ''}">${list.map(([t, s]) => `<li class="${t}">${ico({ ok: 'check', miss: 'x', warn: 'alert', info: 'dot' }[t], 14)}<span>${s}</span></li>`).join('')}</ul>`;
+const confRows = list => list.map(([n]) => `<div class="conf"><span class="cn">${n}</span><span class="cb"><i></i></span><span class="cp">—</span></div>`).join('');
+function setConf(id, k, v) {
+  const r = $sys.querySelector(`[data-id="${id}"]`).querySelectorAll('.conf')[k];
+  r.dataset.tone = v >= 85 ? 'green' : 'red'; r.querySelector('i').style.setProperty('--v', v / 100); r.querySelector('.cp').textContent = v + '%';
+}
+function sysCard(id, o) {
+  let c = $sys.querySelector(`[data-id="${id}"]`); const isNew = !c;
+  if (isNew) {
+    $sys.querySelector('.empty')?.remove();
+    c = el('article', 'card', '<header class="card-h"><span class="tile"></span><h3></h3><span class="pill"></span></header><div class="card-b"></div>');
+    c.dataset.id = id; $sys.append(c);
   }
-  setSysBadge('✓ All Classified', 'sb-green');
-  await delay(600);
-
-  // Store on server card
-  addSysCard('c3', '📂', 'ico-green', 'Stored on Internal Server', '✓ Done', 'st-done', `
-    <div class="ck">
-      <div class="cki ok">✓ /Mehta_Rajesh/ITR/2024-25/</div>
-      <div class="cki ok">✓ /Mehta_Priya/Form16/2024-25/</div>
-      <div class="cki ok">✓ /ABCPvtLtd/Tally/2024-25/</div>
-      <div class="cki ok">✓ Assigned: Priya Joshi (ITR team)</div>
-    </div>`, 'done');
-  await delay(600);
-
-  // WhatsApp confirmation to client
-  await waMsg(`✅ Thank you, Rajesh!<br><br>We have received and verified all 4 documents:<br>• ITR — Rajesh Mehta ✓<br>• Form 16 — Priya Mehta ✓<br>• Tally Export — ${name} ✓<br>• Bank Statement — SBI ✓<br><br>Our team will begin processing shortly.${waTime('10:44 AM')}`, 'sys', 900);
-
-  await delay(600);
-  // CA team update
-  addCACard('n1', 'success', 'PJ', '#059669', 'Priya Joshi', 'Just now',
-    '📁 Files assigned to me:<br>• ITR (Rajesh Mehta)<br>• ITR (Priya Mehta)<br>• GST (ABC Pvt Ltd)<br><br>Starting preparation now.');
-
-  hint('✅ Demo complete! Try another scenario above.');
+  const tile = c.querySelector('.tile');
+  if (o.tone) tile.className = 'tile t-' + o.tone;
+  if (o.icon) tile.innerHTML = ico(o.icon, 15);
+  if (o.title) c.querySelector('h3').textContent = o.title;
+  if (o.status) { const p = c.querySelector('.pill'); p.className = 'pill t-' + (o.statusTone || 'neutral'); p.textContent = o.status; }
+  const body = c.querySelector('.card-b');
+  if (o.body !== undefined) body.innerHTML = o.body;
+  body.hidden = !body.innerHTML;
+  isNew ? enter(c) : bump(c); scrollEnd($sys);
+  return c;
 }
 
-// ─── SCENARIO 2: SMART DETECTION ───────────────────────────────────────────
-
-function sc1_init() {
-  setWAContact('MS', 'Meera Sharma', 'WhatsApp', '#9c27b0');
-  $('caBody').innerHTML = '<div class="empty">Awaiting system alerts...</div>';
-
-  // Pre-load Meera's chat with 3 files already sent
-  const b = $('waBody');
-  b.innerHTML = '';
-  const msgs = [
-    {side:'out', html: `Hello, sending my documents for ITR filing.${waTime('11:15 AM')}`},
-    {side:'out', html: `${fileMsg('Bank_SBI_Meera.pdf','98 KB')}${waTime('11:15 AM')}`},
-    {side:'out', html: `${fileMsg('Bank_HDFC_Meera.pdf','102 KB')}${waTime('11:15 AM')}`},
-    {side:'out', html: `${fileMsg('Form16_Meera.pdf','156 KB')}${waTime('11:16 AM')}`},
-  ];
-  msgs.forEach(m => {
-    const d = document.createElement('div'); d.className='wmsg '+m.side; d.innerHTML=m.html; b.appendChild(d);
-  });
-  scrollWA();
-
-  $('sysBody').innerHTML = `<div class="scard proc"><div class="scard-top"><div class="scard-ico ico-blue">💬</div><div class="scard-name">3 Files Received via WhatsApp</div><div class="scard-st st-proc">Ready</div></div><div class="ck" style="margin-top:6px"><div class="cki ok">✓ Bank_SBI_Meera.pdf — 99% → Meera Sharma</div><div class="cki ok">✓ Bank_HDFC_Meera.pdf — 99% → Meera Sharma</div><div class="cki ok">✓ Form16_Meera.pdf — 99% → Meera Sharma</div><div class="cki warn">⚠ Checking against client history...</div></div></div>`;
-
-  hint('👆 Click to check against Meera\'s submission history');
-  showCta('🧠 Check Against History', 'cta-purple', sc1_step1);
+// CA feed
+const opts = list => `<div class="opts">${list.map(([l, s]) => `<button class="opt"><b>${l}</b><small>${s}</small></button>`).join('')}</div>`;
+const autoTag = t => `<p class="autotag">${ico('sparkles', 13)}<span><b>Autopilot</b> · ${t}</span></p>`;
+function feed(o) {
+  $feed.querySelector('.empty')?.remove();
+  const n = el('article', 'note t-' + o.tone, `<span class="av" style="background:${o.color}">${o.initials}</span><div class="nb"><div class="nh"><b>${o.name}</b><time>${o.time}</time></div><p>${o.body}</p>${o.extra || ''}</div>`);
+  $feed.append(n); enter(n, { y: 12 }); scrollEnd($feed); return n;
 }
 
-async function sc1_step1() {
-  hideCta();
-  hint('System checking what Meera submitted last year...');
-  setSysBadge('Checking History...', 'sb-amber');
-  await delay(700);
-
-  $('sysBody').innerHTML = '';
-  addSysCard('h0', '🧠', 'ico-amber', 'Historical Pattern Check', '⚠ Gap Found', 'st-warn', `
-    <div class="hbox">
-      <div class="hrow"><span class="hlbl">Last year submitted</span><span class="hv hv-ok">4 bank statements</span></div>
-      <div class="hrow"><span class="hlbl">This year received</span><span class="hv hv-miss">3 bank statements</span></div>
-      <div style="border-top:1px solid #1e293b;margin-top:7px;padding-top:7px;">
-        <div class="cki ok" style="margin-bottom:3px;">✓ SBI Bank Statement</div>
-        <div class="cki ok" style="margin-bottom:3px;">✓ HDFC Bank Statement</div>
-        <div class="cki miss" style="margin-bottom:3px;">✗ Axis Bank Statement — MISSING</div>
-        <div class="cki ok">✓ Form 16</div>
-      </div>
-    </div>`, 'warn');
-
-  await delay(500);
-  clearCA();
-  addCACard('nc0', 'remind', 'SY', '#7c3aed', 'System', 'Just now',
-    '📊 Pattern mismatch detected: Meera Sharma submitted 4 bank statements last year. Only 3 received this year. Axis Bank statement likely missing. Sending alert to client...');
-
-  await delay(800);
-  // Ask Meera via WhatsApp with reply buttons
-  await waMsg(`Hi Meera! 👋<br><br>Based on last year, we usually receive <strong>4 bank statements</strong> from you.<br><br>We have received:<br>✓ SBI Bank Statement<br>✓ HDFC Bank Statement<br>✓ Form 16<br><br>⚠ It looks like your <strong>Axis Bank statement</strong> may be missing.<br><br>Would you like to upload it?${waTime('11:18 AM')}`, 'sys', 1000);
-
-  setReplies([
-    { label: '📤 Yes, uploading now', fn: `async function(btn){ btn.disabled=true; btn.classList.add('used'); await sc1_clientYes(); }` },
-    { label: '❌ No, not applicable', fn: `async function(btn){ btn.disabled=true; btn.classList.add('used'); await sc1_clientNo(); }` }
-  ]);
-  hint('👆 Click a reply button on the WhatsApp chat (as Meera)');
+// CTA in pipeline footer
+async function cta(label, tone, icon) {
+  const wrap = $('#ctaWrap');
+  wrap.innerHTML = `<button class="cta t-${tone}">${ico(icon, 17)}<span>${label}</span></button>`; wrap.hidden = false;
+  enter(wrap.firstChild, { y: 6 });
+  const r = await waitFor([wrap.firstChild], 0, 1300, false);
+  wrap.hidden = true; return r;
 }
-
-async function sc1_clientYes() {
-  setReplies([]);
-  hint('Meera is uploading the missing file...');
-  await waMsg(`Oh yes, I forgot that one! Sending now.${waTime('11:22 AM')}`, 'out', 400);
-  await delay(600);
-  await waMsg(`${fileMsg('Bank_Axis_Meera.pdf','94 KB')}${waTime('11:23 AM')}`, 'out', 300);
-  await delay(500);
-
-  addSysCard('h1', '📨', 'ico-blue', 'Axis Bank Statement Received', '⟳ Validating', 'st-proc', '', 'proc');
-  await delay(800);
-  updateSysCard('h1', '✓ Done', 'st-done',
-    '<div class="ck"><div class="cki ok">✓ Auto-classified: Meera Sharma (99%)</div><div class="cki ok">✓ Added to submission set — now 4/4</div></div>', 'done');
-  await delay(500);
-
-  addSysCard('h2', '✅', 'ico-green', 'All Documents Validated', '✓ Complete', 'st-done', `
-    <div class="ck">
-      <div class="cki ok">✓ 4 bank statements (matches history)</div>
-      <div class="cki ok">✓ Form 16 received</div>
-      <div class="cki ok">✓ Stored: /Sharma_Meera/ITR/2024-25/</div>
-      <div class="cki ok">✓ Assigned: Priya Joshi</div>
-    </div>`, 'done');
-  setSysBadge('✓ Complete', 'sb-green');
-  await delay(600);
-
-  await waMsg(`✅ Thank you, Meera!<br><br>All documents received and verified:<br>• SBI Bank Statement ✓<br>• HDFC Bank Statement ✓<br>• Axis Bank Statement ✓<br>• Form 16 ✓<br><br>Your ITR filing is now in progress. We will notify you once complete.${waTime('11:24 AM')}`, 'sys', 900);
-  addCACard('nc1', 'success', 'PJ', '#059669', 'Priya Joshi', 'Just now',
-    '✅ Meera Sharma — all 4 documents confirmed. Smart detection caught the missing Axis Bank statement. ITR ready to process.');
-  hint('✅ Smart detection complete! System caught the missing document automatically.');
+// quick replies in phone
+async function replies(name, labels, autoIdx) {
+  const r = $('#replies');
+  r.innerHTML = `<p>Reply as ${name}</p>` + labels.map(l => `<button class="rbtn">${l}</button>`).join('');
+  r.hidden = false; $('#waFoot').hidden = true; enter(r, { y: 8 });
+  const res = await waitFor([...r.querySelectorAll('.rbtn')], autoIdx, 1700);
+  await sleep(220); r.hidden = true; $('#waFoot').hidden = false;
+  return res;
 }
-
-async function sc1_clientNo() {
-  setReplies([]);
-  await waMsg(`No problem! We will proceed with the documents received.${waTime('11:19 AM')}`, 'sys', 500);
-  await waMsg(`Noted — proceeding without Axis Bank statement.${waTime('11:19 AM')}`, 'sys', 300);
-  addCACard('nc1', 'info', 'SY', '#3b82f6', 'System', 'Just now',
-    'Meera Sharma confirmed Axis Bank statement not applicable this year. Proceeding with 3 bank statements + Form 16.');
-  hint('Noted. Proceeding with 3 bank statements.');
-}
-
-// ─── SCENARIO 3: REMINDER & DELIVERY ───────────────────────────────────────
-
-function sc2_init() {
-  setWAContact('AP', 'Amit Patel', 'WhatsApp — No docs yet', '#ef4444');
-  clearWA();
-  $('caBody').innerHTML = '';
-
-  // CA panel shows pending alert
-  addCACard('r0', 'urgent', 'SY', '#ef4444', 'System', '9:00 AM',
-    '⏰ <strong>Deadline Alert:</strong> Amit Patel has <strong>2 days</strong> left for GST Q3 filing. No documents received.',
-    `<div class="hbox" style="margin-top:8px;">
-      <div class="hrow"><span class="hlbl">Client</span><span class="hv hv-norm">Amit Patel</span></div>
-      <div class="hrow"><span class="hlbl">Filing</span><span class="hv hv-norm">GST Returns — Q3</span></div>
-      <div class="hrow"><span class="hlbl">Deadline</span><span class="hv hv-miss">2 days remaining</span></div>
-      <div class="hrow"><span class="hlbl">Docs Received</span><span class="hv hv-miss">None</span></div>
+function summary(files) {
+  const secs = Math.round((performance.now() - run.t0) / 1000);
+  const n = el('div', 'summary', `<h4>${ico('sparkles', 16)}Run complete · ${secs}s</h4>
+    <div class="metrics">
+      <div class="metric"><b>${run.auto}</b><span>Steps automated</span></div>
+      <div class="metric"><b>${files}</b><span>Files handled</span></div>
+      <div class="metric"><b>${run.human}</b><span>Human decisions</span></div>
+      <div class="metric"><b>${run.autoDecisions}</b><span>Autopilot decisions</span></div>
     </div>`);
-
-  $('sysBody').innerHTML = `<div class="scard warn"><div class="scard-top"><div class="scard-ico ico-amber">📅</div><div class="scard-name">Deadline Monitor</div><div class="scard-st st-warn">⚠ Overdue</div></div><div class="ck" style="margin-top:6px"><div class="cki miss">✗ GST Q3 docs not received</div><div class="cki warn">⚠ Deadline: 2 days</div><div class="cki info">Action: Send WhatsApp reminder</div></div></div>`;
-
-  showCta('📲 Send WhatsApp Reminder', 'cta-amber', sc2_step1);
-  hint('👆 Click to send the 1st deadline reminder to Amit');
+  const b = el('button', 'ghost', `${ico('rotate', 15)}Replay this scenario`); b.onclick = () => load(cur);
+  n.append(b); $feed.append(n); enter(n, { y: 12 }); scrollEnd($feed);
+  badge('Complete', 'green');
 }
 
-async function sc2_step1() {
-  hideCta();
-  hint('Sending 1st reminder to Amit...');
-  setSysBadge('Reminder Sent', 'sb-amber');
-
-  await waMsg(`Hi Amit! 👋<br><br>This is a reminder from <strong>Team CA</strong>.<br><br>Your GST Return for Q3 (Oct–Dec) is due in <strong>2 days</strong>.<br><br>We still need:<br>• Sales Invoices (Oct–Dec)<br>• Purchase Invoices (Oct–Dec)<br>• Input Tax Credit Summary<br><br>Please send them at your earliest. Reply to this message or send files directly.${waTime('9:05 AM')}`, 'sys', 600);
-
-  addSysCard('rr0', '📲', 'ico-amber', '1st Reminder Sent', '⏳ Waiting', 'st-warn', `
-    <div class="ck"><div class="cki ok">✓ WhatsApp reminder delivered</div><div class="cki warn">⏳ No response from client yet</div></div>`, 'warn');
-  await delay(1000);
-  showCta('⏩ Next Day: No Response', 'cta-amber', sc2_step2);
-  hint('👆 Amit didn\'t respond. Click to escalate.');
-}
-
-async function sc2_step2() {
-  hideCta();
-  hint('No response — sending urgent 2nd reminder and alerting Dhruv...');
-  await delay(400);
-
-  await waMsg(`🔔 <strong>Urgent Reminder</strong> — Team CA<br><br>GST filing deadline is <strong>TOMORROW</strong>, Amit.<br><br>Documents still pending:<br>✗ Sales Invoices<br>✗ Purchase Invoices<br>✗ ITC Summary<br><br>Please submit immediately to avoid late filing penalties.${waTime('9:00 AM (Next Day)')}`, 'sys', 700);
-
-  updateSysCard('rr0', '⚠ Escalated', 'st-warn',
-    '<div class="ck"><div class="cki ok">✓ 1st reminder sent — no response</div><div class="cki warn">⚠ 2nd urgent reminder sent</div><div class="cki warn">⚠ CA Dhruv Shah notified</div></div>', 'warn');
-
-  addCACard('r1', 'urgent', 'DS', '#d97706', 'Dhruv Shah', 'Just now',
-    '⚠ <strong>Amit Patel</strong> has not responded to 2 reminders. GST deadline is TOMORROW. Please call directly and follow up.');
-
-  await delay(1000);
-  showCta('✅ Simulate: Client Submits Docs', 'cta-green', sc2_step3);
-  hint('👆 Amit finally responds. Click to simulate file submission.');
-}
-
-async function sc2_step3() {
-  hideCta();
-  hint('Amit is submitting documents...');
-  await waMsg(`Sorry for the delay! Sending everything now.${waTime('11:30 AM')}`, 'out', 500);
-  await delay(600);
-  await waMsg(`${fileMsg('Sales_Invoices_Q3.pdf','380 KB')}${waTime('11:31 AM')}`, 'out', 400);
-  await waMsg(`${fileMsg('Purchase_Invoices_Q3.pdf','295 KB')}${waTime('11:31 AM')}`, 'out', 400);
-  await waMsg(`${fileMsg('ITC_Summary_Q3.xlsx','88 KB')}${waTime('11:32 AM')}`, 'out', 400);
-  await delay(500);
-
-  addSysCard('rr1', '📨', 'ico-blue', '3 GST Documents Received', '⟳ Validating', 'st-proc', `
-    <div class="conf-row"><span class="conf-name">Sales_Invoices_Q3.pdf</span><div class="conf-bar"><div class="cf cf-h" style="width:98%"></div></div><span class="conf-pct cp-h">98%</span></div>
-    <div class="conf-row"><span class="conf-name">Purchase_Invoices_Q3.pdf</span><div class="conf-bar"><div class="cf cf-h" style="width:97%"></div></div><span class="conf-pct cp-h">97%</span></div>
-    <div class="conf-row"><span class="conf-name">ITC_Summary_Q3.xlsx</span><div class="conf-bar"><div class="cf cf-h" style="width:96%"></div></div><span class="conf-pct cp-h">96%</span></div>`, 'proc');
-  setSysBadge('Processing Docs', 'sb-blue');
-  await delay(1000);
-
-  updateSysCard('rr1', '✓ Validated', 'st-done',
-    '<div class="ck"><div class="cki ok">✓ Sales Invoices — 47 entries verified</div><div class="cki ok">✓ Purchase Invoices — 32 entries verified</div><div class="cki ok">✓ ITC Summary — amounts matched</div><div class="cki ok">✓ Stored: /Patel_Amit/GST/Q3-2024/</div></div>', 'done');
-
-  await waMsg(`✅ All documents received and verified.<br><br>Your GST return has been assigned to our team on <strong>priority</strong> given the deadline. We will complete it by end of today.${waTime('11:33 AM')}`, 'sys', 900);
-
-  addCACard('r2', 'success', 'DS', '#059669', 'Dhruv Shah', '11:33 AM',
-    '✅ Amit Patel submitted 3 GST files. All validated. Starting filing now — will complete before EOD.',
-    `<button class="ca-btn ca-btn-green" onclick="sc2_step4(this)">📤 Mark as Filed &amp; Notify Client</button>`);
-
-  hint('👆 Dhruv completes the filing — click to notify client of output');
-}
-
-async function sc2_step4(btn) {
-  btn.disabled = true; btn.textContent = '⟳ Filing complete...';
-  hint('Filing done! Asking client if they want files via WhatsApp...');
-  await delay(600);
-
-  addSysCard('rr2', '✅', 'ico-green', 'GST Return Filed', '✓ Complete', 'st-done', `
-    <div class="ck">
-      <div class="cki ok">✓ Sales Invoices — processed</div>
-      <div class="cki ok">✓ Purchase Invoices — processed</div>
-      <div class="cki ok">✓ ITC matched and confirmed</div>
-      <div class="cki ok">✓ Acknowledgement: GST24Q3AP7821</div>
-    </div>`, 'done');
-  setSysBadge('✓ Filed', 'sb-green');
-  await delay(700);
-
-  await waMsg(`🎉 Great news, Amit!<br><br>Your <strong>GST Return for Q3</strong> has been filed successfully.<br><br>Acknowledgement No: <strong>GST24Q3AP7821</strong><br><br>Your acknowledgement and summary documents are ready. Would you like to receive them on WhatsApp?${waTime('4:30 PM')}`, 'sys', 1000);
-
-  setReplies([
-    { label: '📲 YES — Send on WhatsApp', fn: `async function(btn){ btn.disabled=true; btn.classList.add('used'); await sc2_deliverWA(); }` },
-    { label: '📧 No — Email only please', fn: `async function(btn){ btn.disabled=true; btn.classList.add('used'); await sc2_deliverEmail(); }` }
-  ]);
-  hint('👆 Amit decides how to receive the files — click a reply button');
-}
-
-async function sc2_deliverWA() {
-  setReplies([]);
-  hint('Amit chose WhatsApp — sending files...');
-  await waMsg(`YES please, send on WhatsApp.${waTime('4:32 PM')}`, 'out', 300);
-  await delay(700);
-  await waMsg(`${fileMsg('GST_Return_Q3_Amit_Patel.pdf','445 KB')}${waTime('4:33 PM')}`, 'sys', 600);
-  await waMsg(`${fileMsg('Filing_Acknowledgement_Q3.pdf','102 KB')}${waTime('4:33 PM')}`, 'sys', 300);
-  await delay(400);
-  await waMsg(`Your GST Q3 return has been filed and delivered. 📁<br>Keep your acknowledgement for records.<br><br>Thank you! 🙏${waTime('4:33 PM')}`, 'sys', 500);
-
-  addSysCard('rr3', '📤', 'ico-green', 'Files Delivered to Client', '✓ Done', 'st-done', `
-    <div class="ck"><div class="cki ok">✓ Client opted in — WhatsApp delivery</div><div class="cki ok">✓ Email copy also sent as backup</div><div class="cki ok">✓ iFirm portal updated</div><div class="cki ok">✓ CRM: Marked as "Completed"</div></div>`, 'done');
-  addCACard('r3', 'success', 'SY', '#059669', 'System', '4:33 PM',
-    '✅ Amit Patel — GST Q3 filed and delivered via WhatsApp (client opt-in). iFirm portal and CRM updated. Task complete.');
-  hint('✅ Full cycle complete — from reminder to delivery!');
-}
-
-async function sc2_deliverEmail() {
-  setReplies([]);
-  hint('Sending via email only — saving WhatsApp charges...');
-  await waMsg(`No problem! Documents have been sent to your registered email. 📧${waTime('4:32 PM')}`, 'sys', 600);
-  addSysCard('rr3', '📧', 'ico-green', 'Files Sent via Email', '✓ Done', 'st-done',
-    '<div class="ck"><div class="cki ok">✓ Email delivered (client preference)</div><div class="cki ok">✓ WhatsApp charges saved</div><div class="cki ok">✓ iFirm portal updated</div><div class="cki ok">✓ CRM: Marked as Completed</div></div>', 'done');
-  hint('✅ Files delivered via email. WhatsApp cost minimised.');
-}
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-
-const scenarios = [
-  { init: sc0_init },
-  { init: sc1_init },
-  { init: sc2_init }
+// ─── SCENARIOS ──────────────────────────────────────────────────────────
+const S = [
+{
+  name: 'Family upload', icon: 'users',
+  steps: ['Received', 'Classify', 'Verify', 'File', 'Notify'],
+  setup() {
+    setContact('RM', 'Rajesh Mehta', 'Email · WhatsApp', '#0a84ff');
+    day('Today');
+    bubble(`<div class="email"><div class="em-h">${ico('mail', 13)}Email · rajesh.mehta@gmail.com</div><div class="em-s">Documents – Mehta Family ITR 2024-25</div><p>Hi, please find attached this year's documents for myself and my wife.</p>
+      ${fileChip('ITR_Rajesh_2024.pdf', '245 KB')}${fileChip('Form16_Priya.pdf', '180 KB')}${fileChip('Tally_ABCPvt.xlsx', '312 KB')}${fileChip('Bank_SBI_Rajesh.pdf', '98 KB')}</div>`, 'in', '10:41', false);
+    sysCard('intake', { icon: 'mail', tone: 'accent', title: 'Email received', status: 'Waiting', statusTone: 'accent',
+      body: rows([['info', '4 attachments detected'], ['info', 'From rajesh.mehta@gmail.com'], ['info', 'Subject: Mehta Family ITR 2024-25']]) });
+    stage(0, 'active'); badge('Monitoring', 'accent');
+    hint('Press “Process this email” to start, or switch on Autopilot.');
+  },
+  async run() {
+    await cta('Process this email', 'accent', 'zap');
+    hint('Reading each file and matching it to a client…', 'scan');
+    badge('Analysing', 'accent'); stage(0, 'done'); stage(1, 'active');
+    sysCard('intake', { status: 'Parsed', statusTone: 'green', tone: 'green' });
+    const files = [['ITR_Rajesh_2024.pdf', 97], ['Form16_Priya.pdf', 95], ['Tally_ABCPvt.xlsx', 35], ['Bank_SBI_Rajesh.pdf', 99]];
+    sysCard('cls', { icon: 'scan', tone: 'accent', title: 'Owner detection', status: 'Scanning', statusTone: 'accent',
+      body: confRows(files) + '<p class="fine">85% or higher is filed automatically. Anything lower goes to a CA.</p>' });
+    await sleep(500);
+    for (const [k, [, v]] of files.entries()) if (v >= 85) { setConf('cls', k, v); await sleep(220); }
+    await sleep(450); setConf('cls', 2, 35); await sleep(800);
+    sysCard('cls', { status: '1 needs review', statusTone: 'amber', tone: 'amber' });
+    badge('Review needed', 'amber'); stage(1, 'done'); stage(2, 'warn');
+    sysCard('auto', { icon: 'check', tone: 'green', title: '3 files filed automatically', status: 'Done', statusTone: 'green',
+      body: rows([['ok', 'ITR_Rajesh_2024.pdf → Rajesh Mehta · ITR'], ['ok', 'Form16_Priya.pdf → Priya Mehta · Form 16'], ['ok', 'Bank_SBI_Rajesh.pdf → Rajesh Mehta · Bank']]) });
+    await sleep(350);
+    sysCard('unclear', { icon: 'alert', tone: 'amber', title: 'Tally_ABCPvt.xlsx is ambiguous', status: 'CA needed', statusTone: 'amber',
+      body: '<p class="note-text">Rajesh has a personal account and is also a director of ABC Pvt Ltd. Both match.</p>' });
+    hint('Dhruv needs to confirm who owns the Tally file. Choose in the CA team panel.', 'users');
+    const n = feed({ name: 'Dhruv Shah', initials: 'DS', color: '#ff9f0a', time: 'Now', tone: 'amber',
+      body: 'Who owns <b>Tally_ABCPvt.xlsx</b>? Detection confidence is only 35%.',
+      extra: opts([['Rajesh Mehta', 'Personal account'], ['ABC Pvt Ltd', 'Company · director Rajesh']]) });
+    const { i, auto } = await waitFor([...n.querySelectorAll('.opt')], 1, 1800);
+    if (auto) n.querySelector('.nb').insertAdjacentHTML('beforeend', autoTag('Learned rule: files named Tally_&lt;company&gt; belong to the company. Matched 12 of 12 past confirmations.'));
+    const owner = i ? 'ABC Pvt Ltd' : 'Rajesh Mehta';
+    sysCard('unclear', { tone: 'green', icon: 'check', title: 'Tally_ABCPvt.xlsx resolved', status: 'Resolved', statusTone: 'green',
+      body: rows([['ok', `→ ${owner} · ${i ? 'Company' : 'Personal'} · Tally`], ['ok', `Confirmed by ${auto ? 'Autopilot (learned rule)' : 'Dhruv Shah'}`], ['info', 'Saved as a rule for next time']]) });
+    badge('All classified', 'green'); stage(2, 'done'); stage(3, 'active');
+    await sleep(500);
+    sysCard('store', { icon: 'folder', tone: 'green', title: 'Filed on the internal server', status: 'Done', statusTone: 'green',
+      body: rows([['ok', '/Mehta_Rajesh/ITR/2024-25/'], ['ok', '/Mehta_Priya/Form16/2024-25/'], ['ok', i ? '/ABC_Pvt_Ltd/Tally/2024-25/' : '/Mehta_Rajesh/Tally/2024-25/'], ['ok', 'Assigned to Priya Joshi · ITR team']], true) });
+    stage(3, 'done'); stage(4, 'active');
+    await chat(`Thank you, Rajesh. We've received and checked all 4 documents:<br>• ITR — Rajesh Mehta ✓<br>• Form 16 — Priya Mehta ✓<br>• Tally export — ${owner} ✓<br>• Bank statement — SBI ✓<br><br>Our team starts work today.`, 'out', { typing: 900, time: '10:44' });
+    feed({ name: 'Priya Joshi', initials: 'PJ', color: '#30d158', time: 'Now', tone: 'green',
+      body: `Assigned to me: ITR for Rajesh Mehta, ITR for Priya Mehta, ${i ? 'GST for ABC Pvt Ltd' : 'Tally review for Rajesh Mehta'}. Starting preparation.` });
+    stage(4, 'done'); summary(4);
+    hint('Done. Try another scenario, or replay with Autopilot on.', 'check');
+  },
+},
+{
+  name: 'Missing document', icon: 'brain',
+  steps: ['Received', 'History check', 'Follow up', 'Validate', 'Confirm'],
+  setup() {
+    setContact('MS', 'Meera Sharma', 'WhatsApp', '#bf5af2');
+    day('Today');
+    bubble('Hello, sending my documents for ITR filing.', 'in', '11:15');
+    bubble(fileChip('Bank_SBI_Meera.pdf', '98 KB'), 'in', '11:15');
+    bubble(fileChip('Bank_HDFC_Meera.pdf', '102 KB'), 'in', '11:15');
+    bubble(fileChip('Form16_Meera.pdf', '156 KB'), 'in', '11:16');
+    sysCard('recv', { icon: 'msg', tone: 'accent', title: '3 files received on WhatsApp', status: 'Ready', statusTone: 'accent',
+      body: rows([['ok', 'Bank_SBI_Meera.pdf · 99% → Meera Sharma'], ['ok', 'Bank_HDFC_Meera.pdf · 99% → Meera Sharma'], ['ok', 'Form16_Meera.pdf · 99% → Meera Sharma']]) });
+    stage(0, 'active'); badge('Monitoring', 'accent');
+    hint('Check this upload against what Meera sent last year.');
+  },
+  async run() {
+    await cta('Check against last year', 'accent', 'history');
+    stage(0, 'done'); stage(1, 'active'); badge('Checking history', 'accent');
+    hint('Comparing with last year’s submission…', 'history');
+    await sleep(700);
+    sysCard('hist', { icon: 'history', tone: 'amber', title: 'History check', status: 'Gap found', statusTone: 'amber',
+      body: '<dl class="kv"><dt>Last year</dt><dd>4 bank statements</dd><dt>This year</dt><dd class="bad">3 bank statements</dd></dl>' +
+        rows([['ok', 'SBI bank statement'], ['ok', 'HDFC bank statement'], ['miss', 'Axis bank statement — missing'], ['ok', 'Form 16']]) });
+    stage(1, 'warn'); badge('Gap found', 'amber');
+    feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: 'Now', tone: 'purple',
+      body: 'Meera sent 4 bank statements last year and 3 this year. Axis Bank is probably missing. Asking her on WhatsApp.' });
+    await sleep(500); stage(1, 'done'); stage(2, 'active');
+    await chat('Hi Meera 👋<br><br>Last year you sent us <b>4 bank statements</b>. This year we have SBI, HDFC and your Form 16.<br><br>Is your <b>Axis Bank statement</b> missing? You can send it here.', 'out', { typing: 1000, time: '11:18' });
+    hint('Reply as Meera in the phone.', 'msg');
+    const { i } = await replies('Meera', ['Yes, sending it now', 'Not applicable this year'], 0);
+    if (i === 0) {
+      await chat('Oh yes, I forgot that one. Sending now.', 'in', { typing: 500, time: '11:22' });
+      await chat(fileChip('Bank_Axis_Meera.pdf', '94 KB'), 'in', { typing: 400, time: '11:23' });
+      stage(2, 'done'); stage(3, 'active'); badge('Validating', 'accent');
+      sysCard('axis', { icon: 'file', tone: 'accent', title: 'Axis bank statement received', status: 'Validating', statusTone: 'accent', body: '' });
+      await sleep(800);
+      sysCard('axis', { tone: 'green', status: 'Done', statusTone: 'green', body: rows([['ok', 'Matched to Meera Sharma · 99%'], ['ok', 'Submission now 4 of 4']]) });
+      await sleep(300);
+      sysCard('valid', { icon: 'check', tone: 'green', title: 'All documents validated', status: 'Complete', statusTone: 'green',
+        body: rows([['ok', '4 bank statements, same as last year'], ['ok', 'Form 16 received'], ['ok', 'Filed to /Sharma_Meera/ITR/2024-25/'], ['ok', 'Assigned to Priya Joshi']]) });
+      stage(3, 'done'); stage(4, 'active');
+      await chat('Thank you, Meera. Everything’s in:<br>• SBI ✓ • HDFC ✓ • Axis ✓<br>• Form 16 ✓<br><br>Your ITR filing is now in progress.', 'out', { typing: 900, time: '11:24' });
+      feed({ name: 'Priya Joshi', initials: 'PJ', color: '#30d158', time: 'Now', tone: 'green',
+        body: 'Meera Sharma: all 4 documents in. The history check caught the missing Axis statement. Ready to prepare.' });
+      stage(4, 'done'); summary(4);
+    } else {
+      await chat('Not applicable. I closed that account this year.', 'in', { typing: 500, time: '11:19' });
+      stage(2, 'done'); stage(3, 'active');
+      sysCard('valid', { icon: 'check', tone: 'green', title: 'Proceeding with 3 statements', status: 'Confirmed', statusTone: 'green',
+        body: rows([['ok', 'Client confirmed the Axis account is closed'], ['ok', 'Profile updated: expect 3 statements next year'], ['ok', 'Filed to /Sharma_Meera/ITR/2024-25/']]) });
+      badge('Proceeding · 3 of 3', 'green');
+      stage(3, 'done'); stage(4, 'active');
+      await chat('Noted, thanks Meera. We’ll go ahead with SBI, HDFC and Form 16.', 'out', { typing: 600, time: '11:19' });
+      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: 'Now', tone: 'accent',
+        body: 'Meera Sharma confirmed the Axis account is closed. Proceeding with 3 statements and Form 16. Next year’s checklist updated.' });
+      stage(4, 'done'); summary(3);
+    }
+    hint('The history check caught the gap without anyone looking.', 'check');
+  },
+},
+{
+  name: 'Deadline & delivery', icon: 'calendar',
+  steps: ['Deadline', 'Remind', 'Escalate', 'Validate', 'File', 'Deliver'],
+  setup() {
+    setContact('AP', 'Amit Patel', 'No documents yet', '#ff453a');
+    day('Today');
+    feed({ name: 'System', initials: 'SY', color: '#ff453a', time: '9:00', tone: 'red',
+      body: '<b>Deadline alert.</b> Amit Patel has 2 days left for GST Q3 and hasn’t sent anything.',
+      extra: '<dl class="kv"><dt>Client</dt><dd>Amit Patel</dd><dt>Filing</dt><dd>GST return · Q3</dd><dt>Due</dt><dd class="bad">In 2 days</dd><dt>Documents</dt><dd class="bad">None</dd></dl>' });
+    sysCard('dl', { icon: 'calendar', tone: 'amber', title: 'Deadline monitor', status: 'At risk', statusTone: 'amber',
+      body: rows([['miss', 'GST Q3 documents not received'], ['warn', 'Due in 2 days'], ['info', 'Next: WhatsApp reminder']]) });
+    stage(0, 'warn'); badge('At risk', 'amber');
+    hint('Send Amit the first reminder.');
+  },
+  async run() {
+    await cta('Send WhatsApp reminder', 'amber', 'send');
+    stage(0, 'done'); stage(1, 'active'); badge('Reminder sent', 'amber');
+    await chat('Hi Amit 👋 Reminder from Ledger Hackers.<br><br>Your <b>GST return for Q3</b> (Oct–Dec) is due in <b>2 days</b>. We still need:<br>• Sales invoices<br>• Purchase invoices<br>• Input tax credit summary<br><br>Send the files here when ready.', 'out', { typing: 600, time: '9:05' });
+    sysCard('rem', { icon: 'send', tone: 'amber', title: 'Reminder 1 sent', status: 'Waiting', statusTone: 'amber', body: rows([['ok', 'Delivered on WhatsApp'], ['warn', 'No reply yet']]) });
+    stage(1, 'done'); hint('No reply. Skip ahead a day.', 'clock');
+    await cta('Next day: still no reply', 'neutral', 'clock');
+    stage(2, 'active'); day('Tomorrow');
+    await chat('<b>Urgent:</b> your GST filing is due <b>tomorrow</b>, Amit.<br><br>Still pending:<br>✗ Sales invoices<br>✗ Purchase invoices<br>✗ ITC summary<br><br>Please send today to avoid a late fee.', 'out', { typing: 700, time: '9:00' });
+    sysCard('rem', { tone: 'red', title: 'Reminders escalated', status: 'Escalated', statusTone: 'red', body: rows([['ok', 'Reminder 1: no reply'], ['warn', 'Reminder 2 (urgent) sent'], ['warn', 'Escalated to Dhruv Shah']]) });
+    feed({ name: 'Dhruv Shah', initials: 'DS', color: '#ff9f0a', time: 'Now', tone: 'amber', body: 'Amit Patel hasn’t replied to 2 reminders and GST is due tomorrow. Calling him now.' });
+    stage(2, 'done'); badge('Escalated', 'red'); hint('Amit finally replies.', 'msg');
+    await cta('Amit sends his documents', 'green', 'file');
+    stage(3, 'active');
+    await chat('Sorry for the delay! Sending everything now.', 'in', { typing: 500, time: '11:30' });
+    for (const [n, s, t] of [['Sales_Invoices_Q3.pdf', '380 KB', '11:31'], ['Purchase_Invoices_Q3.pdf', '295 KB', '11:31'], ['ITC_Summary_Q3.xlsx', '88 KB', '11:32']])
+      await chat(fileChip(n, s), 'in', { typing: 350, time: t });
+    const g = [['Sales_Invoices_Q3.pdf', 98], ['Purchase_Invoices_Q3.pdf', 97], ['ITC_Summary_Q3.xlsx', 96]];
+    sysCard('gst', { icon: 'scan', tone: 'accent', title: '3 GST documents received', status: 'Validating', statusTone: 'accent', body: confRows(g) });
+    badge('Validating', 'accent');
+    await sleep(300); for (const [k, [, v]] of g.entries()) { setConf('gst', k, v); await sleep(200); }
+    await sleep(700);
+    sysCard('gst', { tone: 'green', icon: 'check', status: 'Validated', statusTone: 'green',
+      body: rows([['ok', 'Sales invoices: 47 entries checked'], ['ok', 'Purchase invoices: 32 entries checked'], ['ok', 'ITC summary matches purchase register'], ['ok', 'Filed to /Patel_Amit/GST/Q3-2024/']]) });
+    stage(3, 'done'); stage(4, 'active');
+    await chat('Got everything, thanks. Your return is on priority and will be filed today.', 'out', { typing: 800, time: '11:33' });
+    const f = feed({ name: 'Dhruv Shah', initials: 'DS', color: '#30d158', time: '11:33', tone: 'green',
+      body: 'All 3 GST files validated. Preparing the return now.',
+      extra: `<button class="opt wide">${ico('check', 16)}<b>Mark as filed and notify client</b></button>` });
+    hint('Dhruv files the return on the GST portal. Mark it as filed.', 'users');
+    const { auto } = await waitFor([f.querySelector('.opt')], 0, 1500);
+    if (auto) f.querySelector('.nb').insertAdjacentHTML('beforeend', autoTag('Simulated: Dhruv files on the portal. Filing itself always stays with a CA.'));
+    sysCard('filed', { icon: 'check', tone: 'green', title: 'GST return filed', status: 'Filed', statusTone: 'green',
+      body: rows([['ok', 'Sales and purchase invoices processed'], ['ok', 'ITC matched'], ['ok', 'Acknowledgement GST24Q3AP7821']]) });
+    badge('Filed', 'green'); stage(4, 'done'); stage(5, 'active');
+    await chat('Good news, Amit 🎉 Your <b>GST return for Q3</b> is filed.<br>Acknowledgement: <b>GST24Q3AP7821</b><br><br>Do you want the acknowledgement and summary here on WhatsApp?', 'out', { typing: 1000, time: '4:30 PM' });
+    hint('Reply as Amit: choose how to receive the files.', 'msg');
+    const { i } = await replies('Amit', ['Yes, send on WhatsApp', 'Email only, please'], 0);
+    if (i === 0) {
+      await chat('Yes please, send them here.', 'in', { typing: 300, time: '4:32 PM' });
+      await chat(fileChip('GST_Return_Q3_Amit_Patel.pdf', '445 KB'), 'out', { typing: 600, time: '4:33 PM' });
+      await chat(fileChip('Filing_Acknowledgement_Q3.pdf', '102 KB'), 'out', { typing: 300, time: '4:33 PM' });
+      sysCard('deliv', { icon: 'send', tone: 'green', title: 'Delivered on WhatsApp', status: 'Done', statusTone: 'green',
+        body: rows([['ok', 'Client chose WhatsApp delivery'], ['ok', 'Email copy sent as backup'], ['ok', 'iFirm portal updated'], ['ok', 'CRM marked Completed']]) });
+      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:33 PM', tone: 'green', body: 'Amit Patel: GST Q3 filed and delivered on WhatsApp. Portal and CRM updated.' });
+    } else {
+      await chat('Email only, please.', 'in', { typing: 300, time: '4:32 PM' });
+      await chat('Done. Sent to your registered email 📧', 'out', { typing: 600, time: '4:32 PM' });
+      sysCard('deliv', { icon: 'mail', tone: 'green', title: 'Delivered by email', status: 'Done', statusTone: 'green',
+        body: rows([['ok', 'Sent to registered email (client preference)'], ['ok', 'No WhatsApp media charges'], ['ok', 'iFirm portal updated'], ['ok', 'CRM marked Completed']]) });
+      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:32 PM', tone: 'green', body: 'Amit Patel: GST Q3 filed and emailed. Portal and CRM updated.' });
+    }
+    stage(5, 'done'); summary(5);
+    hint('Full cycle: from deadline alert to delivered acknowledgement.', 'check');
+  },
+},
 ];
 
-loadSc(0);
+// ─── SCENARIO SWITCHER ──────────────────────────────────────────────────
+const seg = $('#seg'), ind = seg.querySelector('.ind');
+S.forEach((s, i) => {
+  const b = el('button', '', `${ico(s.icon, 15)}<span>${s.name}</span>`);
+  b.setAttribute('role', 'tab'); b.id = 'tab' + i; b.setAttribute('aria-controls', 'sys');
+  b.addEventListener('click', () => load(i));
+  seg.append(b);
+});
+seg.addEventListener('keydown', e => {
+  if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  const n = (cur + (e.key === 'ArrowRight' ? 1 : S.length - 1)) % S.length;
+  load(n); $('#tab' + n).focus();
+});
+function moveInd(animate) {
+  const b = $('#tab' + cur), x = b.offsetLeft, w = b.offsetWidth;
+  if (animate && M && !reduce.matches) M.animate(ind, { x, width: w }, { type: 'spring', bounce: 0, duration: .35 });
+  else { ind.style.transform = `translateX(${x}px)`; ind.style.width = w + 'px'; }
+}
+addEventListener('resize', () => moveInd(false));
+
+function load(i) {
+  runId++; pending?.rej(new Cancel()); pending = null; cur = i;
+  run = { auto: 0, human: 0, autoDecisions: 0, t0: performance.now() };
+  S.forEach((_, j) => { const t = $('#tab' + j); t.setAttribute('aria-selected', j === i); t.tabIndex = j === i ? 0 : -1; });
+  moveInd(true);
+  $chat.innerHTML = ''; $sys.innerHTML = ''; $('#ctaWrap').hidden = true;
+  $('#replies').hidden = true; $('#waFoot').hidden = false;
+  $feed.innerHTML = '<p class="empty">Decisions that need a person show up here. Everything else is handled for you.</p>';
+  $('#steps').innerHTML = S[i].steps.map(s => `<li data-state="idle"><span class="bar"><i></i></span><span class="lbl">${s}</span></li>`).join('');
+  S[i].setup();
+  S[i].run().catch(e => { if (!(e instanceof Cancel)) console.error(e); });
+}
+$('#replayBtn').addEventListener('click', () => load(cur));
+$('#autoBtn').addEventListener('click', e => {
+  autopilot = !autopilot; e.currentTarget.setAttribute('aria-checked', autopilot);
+  if (pending) autopilot ? pending.arm() : pending.cancel();
+});
+load(0);
+
+// ─── ROADMAP ────────────────────────────────────────────────────────────
+const RM = [
+  ['msg', 'accent', 'Real WhatsApp and email intake', 'Connect the WhatsApp Business Cloud API and a shared inbox. Every attachment lands in the pipeline the moment it arrives, with the sender matched to the client record.', 'Step 1 · Intake', true],
+  ['brain', 'purple', 'AI document reading', 'Read PAN, name, assessment year and document type from the file itself, not the filename. Scanned photos and password-protected PDFs included.', 'Step 2 · Classify'],
+  ['sparkles', 'purple', 'Learns from every CA decision', 'Each confirmation becomes a rule. After a few, the system stops asking: the Tally decision in the demo is how Autopilot works.', 'Step 3 · Learn'],
+  ['calendar', 'amber', 'Statutory calendar and reminder cadence', 'Due dates for GST, ITR, TDS and advance tax per client. Reminders go out on a schedule, then escalate to the owner CA by call task.', 'Step 4 · Chase'],
+  ['merge', 'green', 'Automatic reconciliation', 'Match purchase registers with GSTR-2B and Form 16 with 26AS and AIS. Only differences reach a person.', 'Step 5 · Validate'],
+  ['shield', 'accent', 'Filing prep with a CA sign-off', 'Generate the return JSON for the GST and ITR utilities. A CA reviews and signs with a DSC before anything is filed, and every step is logged.', 'Step 6 · File', true],
+  ['link', 'neutral', 'Sync with your existing tools', 'Push files to Drive or SharePoint, update iFirm or your CRM, and pull ledgers straight from Tally.', 'Integrations'],
+];
+$('#rm').innerHTML = RM.map(([ic, tone, h, p, tag, wide]) =>
+  `<article class="${wide ? 'wide' : ''}" data-rv><span class="tile t-${tone}">${ico(ic, 20)}</span><h3>${h}</h3><p>${p}</p><span class="tag">${tag}</span></article>`).join('');
+
+// ─── GSAP INTRO + REVEALS ───────────────────────────────────────────────
+const gsap = window.gsap;
+if (gsap) {
+  const mm = gsap.matchMedia();
+  mm.add('(prefers-reduced-motion: no-preference)', () => {
+    gsap.timeline({ defaults: { ease: 'power3.out', duration: .8 } })
+      .fromTo('.hero [data-in]', { y: 18, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .09 })
+      .fromTo('.flow', { y: 24, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1 }, '-=.45');
+    document.documentElement.classList.remove('preanim');
+    const items = gsap.utils.toArray('[data-reveal] [data-rv]');
+    gsap.set(items, { y: 22, autoAlpha: 0 });
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return; io.unobserve(e.target);
+      gsap.to(e.target, { y: 0, autoAlpha: 1, duration: .7, ease: 'power3.out', delay: (items.indexOf(e.target) % 4) * .06 });
+    }), { threshold: .12 });
+    items.forEach(n => io.observe(n));
+    return () => io.disconnect();
+  });
+}
+document.documentElement.classList.remove('preanim');
+requestAnimationFrame(() => moveInd(false));
+
+// ─── THREE.JS FLOW: documents → classifier → folders ────────────────────
+(async function flow() {
+  const box = $('.flow'), canvas = $('#flowCanvas');
+  let THREE, renderer;
+  try {
+    THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (e) { box.classList.add('noflow'); return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(30, 1, .1, 200);
+  const V = (x, y) => new THREE.Vector3(x, y, 0);
+
+  const rr = (w, h, r) => { const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+    s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r);
+    s.quadraticCurveTo(x + w, y + h, x + w - r, y + h); s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+    s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; };
+
+  const core = V(0, 0), BINS = [V(8.4, 2.1), V(8.4, 0), V(8.4, -2.1)];
+  const inC = [-2.6, -1.3, 0, 1.3, 2.6].map(y => new THREE.CubicBezierCurve3(V(-10.5, y), V(-5.5, y), V(-3, y * .1), core));
+  const outC = BINS.map(b => new THREE.CubicBezierCurve3(core, V(3.2, 0), V(5, b.y), V(b.x - 1, b.y)));
+
+  const lineMat = new THREE.LineBasicMaterial({ transparent: true, opacity: .9 });
+  [...inC, ...outC].forEach(c => scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(c.getPoints(80)), lineMat)));
+
+  const bins = BINS.map(p => {
+    const fill = new THREE.Mesh(new THREE.ShapeGeometry(rr(1.8, 1.4, .26)), new THREE.MeshBasicMaterial({ transparent: true, opacity: .12 }));
+    const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rr(1.8, 1.4, .26).getPoints(10)), new THREE.LineBasicMaterial({ transparent: true }));
+    fill.position.copy(p); edge.position.copy(p); scene.add(fill, edge);
+    return { fill, edge, pulse: 0 };
+  });
+
+  const coreG = new THREE.Group(); scene.add(coreG);
+  const halo = new THREE.Mesh(new THREE.CircleGeometry(1.7, 64), new THREE.MeshBasicMaterial({ transparent: true, opacity: .1 }));
+  const shell = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.1, 1)), new THREE.LineBasicMaterial({ transparent: true, opacity: .8 }));
+  const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(.55, 3), new THREE.MeshBasicMaterial());
+  coreG.add(halo, shell, inner);
+
+  const N = 36, docs = new THREE.InstancedMesh(new THREE.ShapeGeometry(rr(.36, .46, .06)), new THREE.MeshBasicMaterial(), N);
+  docs.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(docs);
+  const items = Array.from({ length: N }, (_, k) => ({ off: k / N, lane: (k * 3) % 5, bin: (k * 7) % 3, sp: .92 + ((k * 37) % 9) / 60 }));
+  items.forEach((_, k) => docs.setColorAt(k, new THREE.Color()));
+
+  let cDoc = new THREE.Color(), cBins = [];
+  function colors() {
+    const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
+    const acc = v('--accent'); cBins = [v('--accent'), v('--green'), v('--amber')].map(c => new THREE.Color(c));
+    cDoc.set(v('--flow-doc')); lineMat.color.set(v('--flow-line'));
+    [halo, shell, inner].forEach(m => m.material.color.set(acc));
+    bins.forEach((b, i) => { b.fill.material.color.copy(cBins[i]); b.edge.material.color.copy(cBins[i]); });
+  }
+
+  const PERIOD = 9, tmp = new THREE.Object3D(), col = new THREE.Color();
+  let corePulse = 0, prevP = [];
+  function place(t) {
+    items.forEach((it, k) => {
+      const p = ((t / PERIOD) * it.sp + it.off) % 1;
+      let pos, s = 1, mix = 0;
+      if (p < .5) { const u = p / .5; pos = inC[it.lane].getPoint(u); s = 1 - .6 * Math.max(0, (u - .7) / .3); if (u < .08) s *= u / .08; }
+      else { const u = (p - .5) / .5; pos = outC[it.bin].getPoint(u); s = .4 + .6 * Math.min(1, u / .3); mix = Math.min(1, u / .25); if (u > .9) s *= 1 - (u - .9) / .1; }
+      // causality: core pulses when a doc passes through, bin glows when one lands
+      const pp = prevP[k]; if (pp !== undefined) { if (pp < .5 && p >= .5) corePulse = 1; if (pp < .99 && p >= .99) bins[it.bin].pulse = 1; }
+      prevP[k] = p;
+      tmp.position.set(pos.x, pos.y, .01 * k); tmp.scale.setScalar(Math.max(s, .001)); tmp.rotation.z = p < .5 ? -.12 * (1 - p * 2) : 0;
+      tmp.updateMatrix(); docs.setMatrixAt(k, tmp.matrix);
+      docs.setColorAt(k, col.copy(cDoc).lerp(cBins[it.bin], mix));
+    });
+    docs.instanceMatrix.needsUpdate = true; docs.instanceColor.needsUpdate = true;
+  }
+
+  // layout: fit the x-range [-11, 10] and keep labels pinned to projected points
+  const base = new THREE.Vector3(-.5, 0, 0);
+  const labels = [...box.querySelectorAll('.flow-lbl')];
+  const anchors = { src: V(-9.2, -3.5), core: V(0, -1.95), b0: BINS[0], b1: BINS[1], b2: BINS[2] };
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    camera.position.z = Math.max(21.5 / (2 * tan * camera.aspect), 8.4 / (2 * tan));
+    camera.position.x = base.x; camera.position.y = 0; camera.lookAt(base); camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    labels.forEach(l => { const v = anchors[l.dataset.at].clone().project(camera); l.style.left = (v.x + 1) / 2 * w + 'px'; l.style.top = (1 - v.y) / 2 * h + 'px'; });
+  }
+
+  // pointer parallax with exponential (critically damped) smoothing
+  const ptr = { x: 0, y: 0 }, cam = { x: 0, y: 0 };
+  box.addEventListener('pointermove', e => { const r = box.getBoundingClientRect(); ptr.x = (e.clientX - r.left) / r.width - .5; ptr.y = (e.clientY - r.top) / r.height - .5; });
+  box.addEventListener('pointerleave', () => { ptr.x = ptr.y = 0; });
+
+  let visible = true, last = performance.now(), t = 3;
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, .05); last = now;
+    if (visible && !document.hidden && !reduce.matches) {
+      t += dt; place(t);
+      const k = 1 - Math.exp(-dt * 5);
+      cam.x += (ptr.x * .8 - cam.x) * k; cam.y += (-ptr.y * .5 - cam.y) * k;
+      camera.position.x = base.x + cam.x; camera.position.y = cam.y; camera.lookAt(base);
+      coreG.rotation.z += dt * .25; shell.rotation.x += dt * .3; shell.rotation.y += dt * .4;
+      corePulse *= Math.exp(-dt * 5); inner.scale.setScalar(1 + .18 * corePulse); halo.material.opacity = .1 + .12 * corePulse;
+      bins.forEach(b => { b.pulse *= Math.exp(-dt * 4); b.fill.material.opacity = .12 + .22 * b.pulse; });
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(frame);
+  }
+  const still = () => { place(t); renderer.render(scene, camera); };
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(box);
+  new ResizeObserver(() => { resize(); still(); }).observe(canvas);
+  addEventListener('themechange', () => { colors(); still(); });
+  colors(); resize(); still(); requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
