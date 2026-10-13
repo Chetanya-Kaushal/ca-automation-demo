@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         {/* Real refraction through the SVG filter only works in Chromium; elsewhere glass falls back to blur */}
-        <script dangerouslySetInnerHTML={{ __html: "if(navigator.userAgentData)document.documentElement.classList.add('lens-ok')" }} />
+        <script dangerouslySetInnerHTML={{ __html: "var d=document.documentElement;if(navigator.userAgentData)d.classList.add('lens-ok');try{d.classList.add(sessionStorage.getItem('lh-intro')||matchMedia('(prefers-reduced-motion: reduce)').matches?'no-intro':'intro-on')}catch(e){d.classList.add('no-intro')}" }} />
       </head>
       <body>
         <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">

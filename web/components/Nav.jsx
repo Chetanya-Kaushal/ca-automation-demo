@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
 import Icon from './Icon';
 import { lenis } from '@/lib/smooth';
+import { introDone } from '@/lib/intro';
+import HackerMark from './HackerMark';
 
 const LINKS = [['Story', '#story'], ['Features', '#features'], ['A day', '#day'], ['Demo', '#demo'], ['Roadmap', '#roadmap']];
 
@@ -23,7 +25,8 @@ export default function Nav() {
   }, [open]);
 
   useGSAP(() => {
-    gsap.from('.nav-island', { y: -30, autoAlpha: 0, duration: 1.1, ease: 'expo.out', delay: .2 });
+    const t = gsap.from('.nav-island', { y: -30, autoAlpha: 0, duration: 1.1, ease: 'expo.out', paused: true });
+    introDone.then(() => t.play());
   }, { scope: root });
 
   useGSAP(() => {
@@ -40,7 +43,7 @@ export default function Nav() {
     <header ref={root} className="nav">
       <nav className="nav-island glass lens" aria-label="Main">
         <a href="#top" className="brand" onClick={() => setOpen(false)}>
-          <span className="mark">LH</span><span>Ledger Hackers</span>
+          <span className="mark"><HackerMark size={34} ring={false} title="" /></span><span>Ledger Hackers</span>
         </a>
         <ul className="nav-links">
           {LINKS.map(([l, h]) => <li key={h}><a href={h}>{l}</a></li>)}
@@ -61,8 +64,8 @@ export default function Nav() {
         .nav{position:fixed;inset:20px 0 auto;z-index:30;display:flex;justify-content:center;pointer-events:none;padding:0 16px}
         .nav-island{pointer-events:auto;display:flex;align-items:center;gap:6px;height:56px;padding:0 8px 0 10px;border-radius:999px}
         .brand{display:flex;align-items:center;gap:10px;padding-right:10px;font-weight:600;font-size:15px;letter-spacing:-.02em}
-        .mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:-.03em;
-          background:linear-gradient(160deg,#fff,#c9d4ff);color:#05060a;box-shadow:inset 0 -2px 6px rgba(0,0,0,.18)}
+        .mark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 40%,#1d3b8f,#070b1d 70%);box-shadow:inset 0 0 0 1.5px rgba(127,216,255,.5),0 0 18px rgba(58,123,255,.45)}
+        .mark .hm{width:34px;height:34px;margin-top:4px}
         .nav-links{display:flex;list-style:none;gap:2px}
         .nav-links a{display:block;padding:8px 14px;border-radius:999px;font-size:14px;color:var(--fg-2);transition:color .4s var(--out),background-color .4s var(--out)}
         .nav-links a:hover{color:var(--fg);background:rgba(255,255,255,.08)}

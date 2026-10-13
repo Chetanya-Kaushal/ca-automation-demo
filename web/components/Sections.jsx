@@ -125,7 +125,7 @@ export function Finale() {
         </div>
       </div>
       <footer className="wrap foot">
-        <span className="brand-sm"><span className="mark">LH</span>Ledger Hackers</span>
+        <span className="brand-sm"><img src="/favicon.svg" width="28" height="28" alt="" />Ledger Hackers</span>
         <span className="dim">Demo data only. Built on Cloudflare Workers.</span>
       </footer>
       <style>{`

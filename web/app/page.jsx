@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { startSmoothScroll, scrollToHash } from '@/lib/smooth';
 import Stage from '@/components/Stage';
+import Intro from '@/components/Intro';
 import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
 import Story from '@/components/Story';
@@ -30,6 +31,7 @@ export default function Page() {
 
   return (
     <>
+      <Intro />
       <a className="skip" href="#main">Skip to content</a>
       <div ref={stage} className="stage" aria-hidden="true"><Stage active={active} /></div>
       <Nav />

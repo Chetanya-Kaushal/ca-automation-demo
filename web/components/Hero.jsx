@@ -2,6 +2,7 @@
 import { useRef } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { story } from '@/lib/store';
+import { introDone } from '@/lib/intro';
 import Icon from './Icon';
 
 export default function Hero() {
@@ -10,7 +11,8 @@ export default function Hero() {
     const mm = gsap.matchMedia();
     mm.add({ motion: '(prefers-reduced-motion: no-preference)' }, ({ conditions }) => {
       if (!conditions.motion) return;
-      const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: .35 });
+      const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, delay: .15, paused: true });
+      introDone.then(() => tl.play());
       tl.from('.hero .eyebrow', { y: 16, autoAlpha: 0, duration: 1 })
         .from('.hero .split-line>span', { yPercent: 115, rotate: 3, duration: 1.4, stagger: .09 }, '-=.75')
         .from('.hero .lede', { y: 24, autoAlpha: 0, duration: 1.2 }, '-=1')

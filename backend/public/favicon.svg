@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#1d1d1f"/><text x="16" y="21" text-anchor="middle" font-family="-apple-system,system-ui,sans-serif" font-size="13" font-weight="700" fill="#fff">LH</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a5c"/><stop offset="1" stop-color="#0a1130"/></linearGradient>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset=".35" stop-color="#1a1410"/><stop offset=".62" stop-color="#e8b98f"/></linearGradient>
+    <radialGradient id="b" cx=".5" cy=".45" r=".55"><stop offset="0" stop-color="#1d3b8f"/><stop offset="1" stop-color="#05060a"/></radialGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#b)"/>
+  <circle cx="98" cy="100" r="86" fill="none" stroke="#3ee8ff" stroke-width="8" stroke-dasharray="22 6 9 5 30 7 4 6"/>
+  <circle cx="102" cy="100" r="86" fill="none" stroke="#ff3ea5" stroke-width="8" stroke-dasharray="14 9 26 6 8 5 18 7" opacity=".85"/>
+  <path d="M26 196c3-36 32-58 74-58s71 22 74 58z" fill="url(#h)"/>
+  <path d="M100 30c-36 0-56 28-56 66v44c14 8 34 12 56 12s42-4 56-12V96c0-38-20-66-56-66z" fill="url(#h)"/>
+  <path d="M100 54c-21 0-33 17-33 38 0 20 14 34 33 34s33-14 33-34c0-21-12-38-33-38z" fill="#040714"/>
+  <path d="M72 96c2 17 14 28 28 28s26-11 28-28z" fill="url(#f)"/>
+  <path d="M88 108q12 9 24 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <rect x="56" y="128" width="88" height="58" rx="6" fill="#eef2fb"/>
+  <path d="M100 138c-11 0-19 7-19 17 0 6 3 10 7 12v6h24v-6c4-2 7-6 7-12 0-10-8-17-19-17zm-8 13a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm16 0a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm-8 10 3 5h-6z" fill="#0b1228" fill-rule="evenodd"/>
+</svg>
