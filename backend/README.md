@@ -6,7 +6,8 @@ Runs entirely on Cloudflare's free plan: Workers, D1 (database) and KV (file sto
 
 | Path | What it is |
 |---|---|
-| `/` | Landing page with the scripted live demo and roadmap |
+| `/` | Launch site: Next.js + Three.js + GSAP scroll story, built from `../web` into `public/` |
+| `/demo?embed=1` | Interactive scripted demo, shown inside the launch site |
 | `/app` | Staff dashboard: review queue, all documents, deadlines, clients, staff upload |
 | `/upload?t=…` | A client's private upload page (link copied from the Clients tab) |
 | `/webhooks/whatsapp` | Meta WhatsApp Cloud API webhook |
@@ -80,7 +81,7 @@ curl -X POST "http://localhost:8787/cdn-cgi/handler/email?from=a@example.com&to=
 3. Create the tables: `npm run db:remote`
    (Databases created before deadlines existed: also run `npx wrangler d1 execute ledger-hackers --remote --file migrations-002-filings.sql` once.)
 4. Choose the staff password (you'll type it into the dashboard): `npx wrangler secret put STAFF_TOKEN`
-5. `npm run deploy` → prints `https://ledger-hackers.<you>.workers.dev`
+5. `npm run deploy` (builds `../web` first, so run `npm install` there once) → prints `https://ledger-hackers.<you>.workers.dev`
 
 ## Connect WhatsApp
 

@@ -1,0 +1,87 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#05060a; --ink-2:#0b0d14;
+  --fg:#f5f5f7; --fg-2:rgba(245,245,247,.72); --fg-3:rgba(245,245,247,.5);
+  --hair:rgba(255,255,255,.1); --hair-2:rgba(255,255,255,.18);
+  --blue:#4c8dff; --violet:#9b7bff; --teal:#3ee0c5; --amber:#ffb547; --green:#4ade80; --red:#ff6b6b;
+  --spring:cubic-bezier(.32,.72,0,1); --out:cubic-bezier(.2,0,0,1);
+  --r-xl:36px; --r-lg:28px; --r-md:20px;
+  --font:"SF Pro Display",-apple-system,BlinkMacSystemFont,var(--font-geist),system-ui,sans-serif;
+  --mono:"SF Mono",ui-monospace,var(--font-geist-mono),monospace;
+}
+html{background:var(--ink);color:var(--fg);font:400 1rem/1.5 var(--font);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{min-height:100dvh;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img,svg,video,canvas{display:block}
+::selection{background:rgba(76,141,255,.35)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:12px}
+.i{flex-shrink:0}
+
+/* fixed film grain: physical texture without repainting scroll content */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+section{position:relative;z-index:2}
+
+/* ── LIQUID GLASS ─────────────────────────────────────────────
+   Translucent fill + specular rim + inner light. Refraction via #liquid on Chromium. */
+.glass{
+  position:relative;isolation:isolate;
+  background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
+  -webkit-backdrop-filter:blur(22px) saturate(190%);backdrop-filter:blur(22px) saturate(190%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(255,255,255,.06),
+    inset 0 0 0 1px rgba(255,255,255,.08),
+    inset 0 18px 30px -18px rgba(255,255,255,.18),
+    0 24px 60px -24px rgba(0,0,0,.65);
+}
+.lens-ok .glass.lens{backdrop-filter:url(#liquid) blur(14px) saturate(200%) brightness(1.08)}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:radial-gradient(120% 70% at 18% -10%,rgba(255,255,255,.28),transparent 46%),
+             radial-gradient(90% 60% at 100% 120%,rgba(155,123,255,.16),transparent 60%)}
+
+/* Solid "glass" for scrolling cards: same light, no live blur (keeps scrolling at 120 fps) */
+.slab{position:relative;isolation:isolate;
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),rgba(12,14,22,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(255,255,255,.06),inset 0 24px 40px -28px rgba(255,255,255,.14)}
+.slab::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:radial-gradient(100% 60% at 0% 0%,rgba(255,255,255,.1),transparent 50%)}
+
+/* Double bezel: machined tray + glass plate */
+.bezel{padding:6px;border-radius:var(--r-xl);background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.bezel>.core{border-radius:calc(var(--r-xl) - 6px);height:100%}
+
+/* ── TYPE ── */
+.eyebrow{display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;font-size:10.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-2)}
+.display{font-size:clamp(3.1rem,9.2vw,9rem);line-height:.92;letter-spacing:-.055em;font-weight:600}
+.h2{font-size:clamp(2.4rem,6vw,5.4rem);line-height:.96;letter-spacing:-.045em;font-weight:600}
+.h3{font-size:clamp(1.35rem,2.2vw,1.9rem);line-height:1.1;letter-spacing:-.025em;font-weight:600}
+.lede{font-size:clamp(1.05rem,1.5vw,1.3rem);line-height:1.5;letter-spacing:-.012em;color:var(--fg-2);max-width:38ch}
+.dim{color:var(--fg-3)}
+.mono{font-family:var(--mono);font-size:.86em;letter-spacing:0}
+.split-line{display:block;overflow:hidden;padding-bottom:.08em}
+.split-line>span{display:inline-block;will-change:transform}
+
+/* ── BUTTONS (button-in-button) ── */
+.btn{position:relative;display:inline-flex;align-items:center;gap:14px;height:56px;padding:0 8px 0 26px;border-radius:999px;font-size:16px;font-weight:500;letter-spacing:-.01em;
+  transition:transform .5s var(--spring),background-color .4s var(--out)}
+.btn:active{transform:scale(.97)}
+.btn .knob{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;transition:transform .6s var(--spring)}
+.btn:hover .knob{transform:translate(3px,-1px) scale(1.06)}
+.btn-solid{background:var(--fg);color:var(--ink)}
+.btn-solid .knob{background:var(--ink);color:var(--fg)}
+.btn-glass{color:var(--fg)}
+.btn-glass .knob{background:rgba(255,255,255,.12)}
+
+/* ── ENTRY (set by GSAP; content stays visible without JS) ── */
+.reveal{will-change:transform,opacity}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:0s!important;animation-duration:0s!important;animation-iteration-count:1!important}
+}
+@media (prefers-reduced-transparency:reduce){
+  .glass{background:rgba(22,24,32,.96);backdrop-filter:none;-webkit-backdrop-filter:none}
+}

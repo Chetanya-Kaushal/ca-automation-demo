@@ -8,9 +8,13 @@
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script>
+  // Only shown inside the landing page's demo frame; opened directly, go to the landing page
+  if (!/[?&]embed\b/.test(location.search)) location.replace('/#demo');
+  document.documentElement.classList.add('embed');
+  document.documentElement.dataset.theme = 'dark';
   // Hide hero until GSAP intro runs; module removes this class (or on failure)
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('preanim');
-  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -68,6 +72,11 @@ a{color:var(--accent);text-decoration:none}
 .i{flex-shrink:0;display:block}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.92em}
+
+/* ── EMBED (inside the landing page's glass frame) ── */
+.embed .nav,.embed .hero,.embed .flow,.embed #roadmap,.embed footer,.embed #demo .sh{display:none!important}
+.embed body{background:#000}.embed body::before{display:none}
+.embed #demo{padding:20px 0}
 
 /* ── NAV ── */
 .nav{position:sticky;top:0;z-index:20;background:var(--surface);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
@@ -893,6 +902,7 @@ requestAnimationFrame(() => moveInd(false));
 
 // ─── THREE.JS FLOW: documents → classifier → folders ────────────────────
 (async function flow() {
+  if (document.documentElement.classList.contains('embed')) return; // hidden in the embed
   const box = $('.flow'), canvas = $('#flowCanvas');
   let THREE, renderer;
   try {

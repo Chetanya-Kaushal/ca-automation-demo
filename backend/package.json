@@ -7,7 +7,7 @@
     "db:local": "wrangler d1 execute ledger-hackers --local --file schema.sql",
     "db:remote": "wrangler d1 execute ledger-hackers --remote --file schema.sql",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "npm --prefix ../web run build && wrangler deploy"
   },
   "dependencies": {
     "postal-mime": "4.0.0"
