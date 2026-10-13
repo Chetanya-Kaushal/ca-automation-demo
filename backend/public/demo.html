@@ -396,8 +396,8 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
             <div class="sbar"><span>9:41</span><span class="island"></span><span class="sig" id="sig"></span></div>
             <div class="wa-h">
               <span class="back" id="waBack"></span>
-              <span class="av" id="waAv">RM</span>
-              <span class="who"><b id="waName">Rajesh Mehta</b><small id="waStatus">WhatsApp</small></span>
+              <span class="av" id="waAv">CK</span>
+              <span class="who"><b id="waName">Chetanya Kaushal</b><small id="waStatus">WhatsApp</small></span>
             </div>
             <div class="chat" id="chat"></div>
             <div class="wa-foot" id="waFoot"><span class="wa-in">Message</span><span class="wa-mic" id="waMic"></span></div>
@@ -414,7 +414,7 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
 
         <div class="panel dash" role="region" aria-label="CA team dashboard">
           <div class="ph"><h3 id="dashTitle">CA team</h3>
-            <span class="avs" aria-label="3 online"><span class="av" style="background:#ff9f0a">DS</span><span class="av" style="background:#30d158">PJ</span><span class="av" style="background:#0a84ff">AK</span></span>
+            <span class="avs" aria-label="3 online"><span class="av" style="background:#ff9f0a">JT</span><span class="av" style="background:#30d158">TM</span><span class="av" style="background:#0a84ff">CK</span></span>
           </div>
           <div class="pb" id="feed"></div>
         </div>
@@ -643,15 +643,15 @@ function summary(files) {
 // ─── SCENARIOS ──────────────────────────────────────────────────────────
 const S = [
 {
-  name: 'Family upload', icon: 'users',
+  name: 'Founder & company', icon: 'users',
   steps: ['Received', 'Classify', 'Verify', 'File', 'Notify'],
   setup() {
-    setContact('RM', 'Rajesh Mehta', 'Email · WhatsApp', '#0a84ff');
+    setContact('CK', 'Chetanya Kaushal', 'Email · WhatsApp', '#0a84ff');
     day('Today');
-    bubble(`<div class="email"><div class="em-h">${ico('mail', 13)}Email · rajesh.mehta@gmail.com</div><div class="em-s">Documents – Mehta Family ITR 2024-25</div><p>Hi, please find attached this year's documents for myself and my wife.</p>
-      ${fileChip('ITR_Rajesh_2024.pdf', '245 KB')}${fileChip('Form16_Priya.pdf', '180 KB')}${fileChip('Tally_ABCPvt.xlsx', '312 KB')}${fileChip('Bank_SBI_Rajesh.pdf', '98 KB')}</div>`, 'in', '10:41', false);
+    bubble(`<div class="email"><div class="em-h">${ico('mail', 13)}Email · chetanya.kaushal@example.com</div><div class="em-s">Documents – ITR 2024-25, personal &amp; Ledger Hackers Pvt Ltd</div><p>Hi, please find attached this year's documents for myself and the company.</p>
+      ${fileChip('ITR_Chetanya_2024.pdf', '245 KB')}${fileChip('Form16_Chetanya.pdf', '180 KB')}${fileChip('Tally_LedgerHackers.xlsx', '312 KB')}${fileChip('Bank_SBI_Chetanya.pdf', '98 KB')}</div>`, 'in', '10:41', false);
     sysCard('intake', { icon: 'mail', tone: 'accent', title: 'Email received', status: 'Waiting', statusTone: 'accent',
-      body: rows([['info', '4 attachments detected'], ['info', 'From rajesh.mehta@gmail.com'], ['info', 'Subject: Mehta Family ITR 2024-25']]) });
+      body: rows([['info', '4 attachments detected'], ['info', 'From chetanya.kaushal@example.com'], ['info', 'Subject: ITR 2024-25, personal & company']]) });
     stage(0, 'active'); badge('Monitoring', 'accent');
     hint('Press “Process this email” to start, or switch on Autopilot.');
   },
@@ -660,7 +660,7 @@ const S = [
     hint('Reading each file and matching it to a client…', 'scan');
     badge('Analysing', 'accent'); stage(0, 'done'); stage(1, 'active');
     sysCard('intake', { status: 'Parsed', statusTone: 'green', tone: 'green' });
-    const files = [['ITR_Rajesh_2024.pdf', 97], ['Form16_Priya.pdf', 95], ['Tally_ABCPvt.xlsx', 35], ['Bank_SBI_Rajesh.pdf', 99]];
+    const files = [['ITR_Chetanya_2024.pdf', 97], ['Form16_Chetanya.pdf', 95], ['Tally_LedgerHackers.xlsx', 35], ['Bank_SBI_Chetanya.pdf', 99]];
     sysCard('cls', { icon: 'scan', tone: 'accent', title: 'Owner detection', status: 'Scanning', statusTone: 'accent',
       body: confRows(files) + '<p class="fine">85% or higher is filed automatically. Anything lower goes to a CA.</p>' });
     await sleep(500);
@@ -669,27 +669,27 @@ const S = [
     sysCard('cls', { status: '1 needs review', statusTone: 'amber', tone: 'amber' });
     badge('Review needed', 'amber'); stage(1, 'done'); stage(2, 'warn');
     sysCard('auto', { icon: 'check', tone: 'green', title: '3 files filed automatically', status: 'Done', statusTone: 'green',
-      body: rows([['ok', 'ITR_Rajesh_2024.pdf → Rajesh Mehta · ITR'], ['ok', 'Form16_Priya.pdf → Priya Mehta · Form 16'], ['ok', 'Bank_SBI_Rajesh.pdf → Rajesh Mehta · Bank']]) });
+      body: rows([['ok', 'ITR_Chetanya_2024.pdf → Chetanya Kaushal · ITR'], ['ok', 'Form16_Chetanya.pdf → Chetanya Kaushal · Form 16'], ['ok', 'Bank_SBI_Chetanya.pdf → Chetanya Kaushal · Bank']]) });
     await sleep(350);
-    sysCard('unclear', { icon: 'alert', tone: 'amber', title: 'Tally_ABCPvt.xlsx is ambiguous', status: 'CA needed', statusTone: 'amber',
-      body: '<p class="note-text">Rajesh has a personal account and is also a director of ABC Pvt Ltd. Both match.</p>' });
-    hint('Dhruv needs to confirm who owns the Tally file. Choose in the CA team panel.', 'users');
-    const n = feed({ name: 'Dhruv Shah', initials: 'DS', color: '#ff9f0a', time: 'Now', tone: 'amber',
-      body: 'Who owns <b>Tally_ABCPvt.xlsx</b>? Detection confidence is only 35%.',
-      extra: opts([['Rajesh Mehta', 'Personal account'], ['ABC Pvt Ltd', 'Company · director Rajesh']]) });
+    sysCard('unclear', { icon: 'alert', tone: 'amber', title: 'Tally_LedgerHackers.xlsx is ambiguous', status: 'CA needed', statusTone: 'amber',
+      body: '<p class="note-text">Chetanya has a personal account and is also a director of Ledger Hackers Pvt Ltd. Both match.</p>' });
+    hint('Jay needs to confirm who owns the Tally file. Choose in the CA team panel.', 'users');
+    const n = feed({ name: 'Jay Teli', initials: 'JT', color: '#ff9f0a', time: 'Now', tone: 'amber',
+      body: 'Who owns <b>Tally_LedgerHackers.xlsx</b>? Detection confidence is only 35%.',
+      extra: opts([['Chetanya Kaushal', 'Personal account'], ['Ledger Hackers Pvt Ltd', 'Company · director Chetanya']]) });
     const { i, auto } = await waitFor([...n.querySelectorAll('.opt')], 1, 1800);
     if (auto) n.querySelector('.nb').insertAdjacentHTML('beforeend', autoTag('Learned rule: files named Tally_&lt;company&gt; belong to the company. Matched 12 of 12 past confirmations.'));
-    const owner = i ? 'ABC Pvt Ltd' : 'Rajesh Mehta';
-    sysCard('unclear', { tone: 'green', icon: 'check', title: 'Tally_ABCPvt.xlsx resolved', status: 'Resolved', statusTone: 'green',
-      body: rows([['ok', `→ ${owner} · ${i ? 'Company' : 'Personal'} · Tally`], ['ok', `Confirmed by ${auto ? 'Autopilot (learned rule)' : 'Dhruv Shah'}`], ['info', 'Saved as a rule for next time']]) });
+    const owner = i ? 'Ledger Hackers Pvt Ltd' : 'Chetanya Kaushal';
+    sysCard('unclear', { tone: 'green', icon: 'check', title: 'Tally_LedgerHackers.xlsx resolved', status: 'Resolved', statusTone: 'green',
+      body: rows([['ok', `→ ${owner} · ${i ? 'Company' : 'Personal'} · Tally`], ['ok', `Confirmed by ${auto ? 'Autopilot (learned rule)' : 'Jay Teli'}`], ['info', 'Saved as a rule for next time']]) });
     badge('All classified', 'green'); stage(2, 'done'); stage(3, 'active');
     await sleep(500);
     sysCard('store', { icon: 'folder', tone: 'green', title: 'Filed on the internal server', status: 'Done', statusTone: 'green',
-      body: rows([['ok', '/Mehta_Rajesh/ITR/2024-25/'], ['ok', '/Mehta_Priya/Form16/2024-25/'], ['ok', i ? '/ABC_Pvt_Ltd/Tally/2024-25/' : '/Mehta_Rajesh/Tally/2024-25/'], ['ok', 'Assigned to Priya Joshi · ITR team']], true) });
+      body: rows([['ok', '/Kaushal_Chetanya/ITR/2024-25/'], ['ok', '/Kaushal_Chetanya/Form16/2024-25/'], ['ok', i ? '/Ledger_Hackers_Pvt_Ltd/Tally/2024-25/' : '/Kaushal_Chetanya/Tally/2024-25/'], ['ok', 'Assigned to Tanuj Maniyar · ITR team']], true) });
     stage(3, 'done'); stage(4, 'active');
-    await chat(`Thank you, Rajesh. We've received and checked all 4 documents:<br>• ITR — Rajesh Mehta ✓<br>• Form 16 — Priya Mehta ✓<br>• Tally export — ${owner} ✓<br>• Bank statement — SBI ✓<br><br>Our team starts work today.`, 'out', { typing: 900, time: '10:44' });
-    feed({ name: 'Priya Joshi', initials: 'PJ', color: '#30d158', time: 'Now', tone: 'green',
-      body: `Assigned to me: ITR for Rajesh Mehta, ITR for Priya Mehta, ${i ? 'GST for ABC Pvt Ltd' : 'Tally review for Rajesh Mehta'}. Starting preparation.` });
+    await chat(`Thank you, Chetanya. We've received and checked all 4 documents:<br>• ITR — Chetanya Kaushal ✓<br>• Form 16 — Chetanya Kaushal ✓<br>• Tally export — ${owner} ✓<br>• Bank statement — SBI ✓<br><br>Our team starts work today.`, 'out', { typing: 900, time: '10:44' });
+    feed({ name: 'Tanuj Maniyar', initials: 'TM', color: '#30d158', time: 'Now', tone: 'green',
+      body: `Assigned to me: ITR for Chetanya Kaushal, ${i ? 'GST for Ledger Hackers Pvt Ltd' : 'Tally review for Chetanya Kaushal'}. Starting preparation.` });
     stage(4, 'done'); summary(4);
     hint('Done. Try another scenario, or replay with Autopilot on.', 'check');
   },
@@ -698,16 +698,16 @@ const S = [
   name: 'Missing document', icon: 'brain',
   steps: ['Received', 'History check', 'Follow up', 'Validate', 'Confirm'],
   setup() {
-    setContact('MS', 'Meera Sharma', 'WhatsApp', '#bf5af2');
+    setContact('JT', 'Jay Teli', 'WhatsApp', '#bf5af2');
     day('Today');
     bubble('Hello, sending my documents for ITR filing.', 'in', '11:15');
-    bubble(fileChip('Bank_SBI_Meera.pdf', '98 KB'), 'in', '11:15');
-    bubble(fileChip('Bank_HDFC_Meera.pdf', '102 KB'), 'in', '11:15');
-    bubble(fileChip('Form16_Meera.pdf', '156 KB'), 'in', '11:16');
+    bubble(fileChip('Bank_SBI_Jay.pdf', '98 KB'), 'in', '11:15');
+    bubble(fileChip('Bank_HDFC_Jay.pdf', '102 KB'), 'in', '11:15');
+    bubble(fileChip('Form16_Jay.pdf', '156 KB'), 'in', '11:16');
     sysCard('recv', { icon: 'msg', tone: 'accent', title: '3 files received on WhatsApp', status: 'Ready', statusTone: 'accent',
-      body: rows([['ok', 'Bank_SBI_Meera.pdf · 99% → Meera Sharma'], ['ok', 'Bank_HDFC_Meera.pdf · 99% → Meera Sharma'], ['ok', 'Form16_Meera.pdf · 99% → Meera Sharma']]) });
+      body: rows([['ok', 'Bank_SBI_Jay.pdf · 99% → Jay Teli'], ['ok', 'Bank_HDFC_Jay.pdf · 99% → Jay Teli'], ['ok', 'Form16_Jay.pdf · 99% → Jay Teli']]) });
     stage(0, 'active'); badge('Monitoring', 'accent');
-    hint('Check this upload against what Meera sent last year.');
+    hint('Check this upload against what Jay sent last year.');
   },
   async run() {
     await cta('Check against last year', 'accent', 'history');
@@ -719,36 +719,36 @@ const S = [
         rows([['ok', 'SBI bank statement'], ['ok', 'HDFC bank statement'], ['miss', 'Axis bank statement — missing'], ['ok', 'Form 16']]) });
     stage(1, 'warn'); badge('Gap found', 'amber');
     feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: 'Now', tone: 'purple',
-      body: 'Meera sent 4 bank statements last year and 3 this year. Axis Bank is probably missing. Asking her on WhatsApp.' });
+      body: 'Jay sent 4 bank statements last year and 3 this year. Axis Bank is probably missing. Asking him on WhatsApp.' });
     await sleep(500); stage(1, 'done'); stage(2, 'active');
-    await chat('Hi Meera 👋<br><br>Last year you sent us <b>4 bank statements</b>. This year we have SBI, HDFC and your Form 16.<br><br>Is your <b>Axis Bank statement</b> missing? You can send it here.', 'out', { typing: 1000, time: '11:18' });
-    hint('Reply as Meera in the phone.', 'msg');
-    const { i } = await replies('Meera', ['Yes, sending it now', 'Not applicable this year'], 0);
+    await chat('Hi Jay 👋<br><br>Last year you sent us <b>4 bank statements</b>. This year we have SBI, HDFC and your Form 16.<br><br>Is your <b>Axis Bank statement</b> missing? You can send it here.', 'out', { typing: 1000, time: '11:18' });
+    hint('Reply as Jay in the phone.', 'msg');
+    const { i } = await replies('Jay', ['Yes, sending it now', 'Not applicable this year'], 0);
     if (i === 0) {
       await chat('Oh yes, I forgot that one. Sending now.', 'in', { typing: 500, time: '11:22' });
-      await chat(fileChip('Bank_Axis_Meera.pdf', '94 KB'), 'in', { typing: 400, time: '11:23' });
+      await chat(fileChip('Bank_Axis_Jay.pdf', '94 KB'), 'in', { typing: 400, time: '11:23' });
       stage(2, 'done'); stage(3, 'active'); badge('Validating', 'accent');
       sysCard('axis', { icon: 'file', tone: 'accent', title: 'Axis bank statement received', status: 'Validating', statusTone: 'accent', body: '' });
       await sleep(800);
-      sysCard('axis', { tone: 'green', status: 'Done', statusTone: 'green', body: rows([['ok', 'Matched to Meera Sharma · 99%'], ['ok', 'Submission now 4 of 4']]) });
+      sysCard('axis', { tone: 'green', status: 'Done', statusTone: 'green', body: rows([['ok', 'Matched to Jay Teli · 99%'], ['ok', 'Submission now 4 of 4']]) });
       await sleep(300);
       sysCard('valid', { icon: 'check', tone: 'green', title: 'All documents validated', status: 'Complete', statusTone: 'green',
-        body: rows([['ok', '4 bank statements, same as last year'], ['ok', 'Form 16 received'], ['ok', 'Filed to /Sharma_Meera/ITR/2024-25/'], ['ok', 'Assigned to Priya Joshi']]) });
+        body: rows([['ok', '4 bank statements, same as last year'], ['ok', 'Form 16 received'], ['ok', 'Filed to /Teli_Jay/ITR/2024-25/'], ['ok', 'Assigned to Tanuj Maniyar']]) });
       stage(3, 'done'); stage(4, 'active');
-      await chat('Thank you, Meera. Everything’s in:<br>• SBI ✓ • HDFC ✓ • Axis ✓<br>• Form 16 ✓<br><br>Your ITR filing is now in progress.', 'out', { typing: 900, time: '11:24' });
-      feed({ name: 'Priya Joshi', initials: 'PJ', color: '#30d158', time: 'Now', tone: 'green',
-        body: 'Meera Sharma: all 4 documents in. The history check caught the missing Axis statement. Ready to prepare.' });
+      await chat('Thank you, Jay. Everything’s in:<br>• SBI ✓ • HDFC ✓ • Axis ✓<br>• Form 16 ✓<br><br>Your ITR filing is now in progress.', 'out', { typing: 900, time: '11:24' });
+      feed({ name: 'Tanuj Maniyar', initials: 'TM', color: '#30d158', time: 'Now', tone: 'green',
+        body: 'Jay Teli: all 4 documents in. The history check caught the missing Axis statement. Ready to prepare.' });
       stage(4, 'done'); summary(4);
     } else {
       await chat('Not applicable. I closed that account this year.', 'in', { typing: 500, time: '11:19' });
       stage(2, 'done'); stage(3, 'active');
       sysCard('valid', { icon: 'check', tone: 'green', title: 'Proceeding with 3 statements', status: 'Confirmed', statusTone: 'green',
-        body: rows([['ok', 'Client confirmed the Axis account is closed'], ['ok', 'Profile updated: expect 3 statements next year'], ['ok', 'Filed to /Sharma_Meera/ITR/2024-25/']]) });
+        body: rows([['ok', 'Client confirmed the Axis account is closed'], ['ok', 'Profile updated: expect 3 statements next year'], ['ok', 'Filed to /Teli_Jay/ITR/2024-25/']]) });
       badge('Proceeding · 3 of 3', 'green');
       stage(3, 'done'); stage(4, 'active');
-      await chat('Noted, thanks Meera. We’ll go ahead with SBI, HDFC and Form 16.', 'out', { typing: 600, time: '11:19' });
+      await chat('Noted, thanks Jay. We’ll go ahead with SBI, HDFC and Form 16.', 'out', { typing: 600, time: '11:19' });
       feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: 'Now', tone: 'accent',
-        body: 'Meera Sharma confirmed the Axis account is closed. Proceeding with 3 statements and Form 16. Next year’s checklist updated.' });
+        body: 'Jay Teli confirmed the Axis account is closed. Proceeding with 3 statements and Form 16. Next year’s checklist updated.' });
       stage(4, 'done'); summary(3);
     }
     hint('The history check caught the gap without anyone looking.', 'check');
@@ -758,29 +758,29 @@ const S = [
   name: 'Deadline & delivery', icon: 'calendar',
   steps: ['Deadline', 'Remind', 'Escalate', 'Validate', 'File', 'Deliver'],
   setup() {
-    setContact('AP', 'Amit Patel', 'No documents yet', '#ff453a');
+    setContact('TM', 'Tanuj Maniyar', 'No documents yet', '#ff453a');
     day('Today');
     feed({ name: 'System', initials: 'SY', color: '#ff453a', time: '9:00', tone: 'red',
-      body: '<b>Deadline alert.</b> Amit Patel has 2 days left for GST Q3 and hasn’t sent anything.',
-      extra: '<dl class="kv"><dt>Client</dt><dd>Amit Patel</dd><dt>Filing</dt><dd>GST return · Q3</dd><dt>Due</dt><dd class="bad">In 2 days</dd><dt>Documents</dt><dd class="bad">None</dd></dl>' });
+      body: '<b>Deadline alert.</b> Tanuj Maniyar has 2 days left for GST Q3 and hasn’t sent anything.',
+      extra: '<dl class="kv"><dt>Client</dt><dd>Tanuj Maniyar</dd><dt>Filing</dt><dd>GST return · Q3</dd><dt>Due</dt><dd class="bad">In 2 days</dd><dt>Documents</dt><dd class="bad">None</dd></dl>' });
     sysCard('dl', { icon: 'calendar', tone: 'amber', title: 'Deadline monitor', status: 'At risk', statusTone: 'amber',
       body: rows([['miss', 'GST Q3 documents not received'], ['warn', 'Due in 2 days'], ['info', 'Next: WhatsApp reminder']]) });
     stage(0, 'warn'); badge('At risk', 'amber');
-    hint('Send Amit the first reminder.');
+    hint('Send Tanuj the first reminder.');
   },
   async run() {
     await cta('Send WhatsApp reminder', 'amber', 'send');
     stage(0, 'done'); stage(1, 'active'); badge('Reminder sent', 'amber');
-    await chat('Hi Amit 👋 Reminder from Ledger Hackers.<br><br>Your <b>GST return for Q3</b> (Oct–Dec) is due in <b>2 days</b>. We still need:<br>• Sales invoices<br>• Purchase invoices<br>• Input tax credit summary<br><br>Send the files here when ready.', 'out', { typing: 600, time: '9:05' });
+    await chat('Hi Tanuj 👋 Reminder from Ledger Hackers.<br><br>Your <b>GST return for Q3</b> (Oct–Dec) is due in <b>2 days</b>. We still need:<br>• Sales invoices<br>• Purchase invoices<br>• Input tax credit summary<br><br>Send the files here when ready.', 'out', { typing: 600, time: '9:05' });
     sysCard('rem', { icon: 'send', tone: 'amber', title: 'Reminder 1 sent', status: 'Waiting', statusTone: 'amber', body: rows([['ok', 'Delivered on WhatsApp'], ['warn', 'No reply yet']]) });
     stage(1, 'done'); hint('No reply. Skip ahead a day.', 'clock');
     await cta('Next day: still no reply', 'neutral', 'clock');
     stage(2, 'active'); day('Tomorrow');
-    await chat('<b>Urgent:</b> your GST filing is due <b>tomorrow</b>, Amit.<br><br>Still pending:<br>✗ Sales invoices<br>✗ Purchase invoices<br>✗ ITC summary<br><br>Please send today to avoid a late fee.', 'out', { typing: 700, time: '9:00' });
-    sysCard('rem', { tone: 'red', title: 'Reminders escalated', status: 'Escalated', statusTone: 'red', body: rows([['ok', 'Reminder 1: no reply'], ['warn', 'Reminder 2 (urgent) sent'], ['warn', 'Escalated to Dhruv Shah']]) });
-    feed({ name: 'Dhruv Shah', initials: 'DS', color: '#ff9f0a', time: 'Now', tone: 'amber', body: 'Amit Patel hasn’t replied to 2 reminders and GST is due tomorrow. Calling him now.' });
-    stage(2, 'done'); badge('Escalated', 'red'); hint('Amit finally replies.', 'msg');
-    await cta('Amit sends his documents', 'green', 'file');
+    await chat('<b>Urgent:</b> your GST filing is due <b>tomorrow</b>, Tanuj.<br><br>Still pending:<br>✗ Sales invoices<br>✗ Purchase invoices<br>✗ ITC summary<br><br>Please send today to avoid a late fee.', 'out', { typing: 700, time: '9:00' });
+    sysCard('rem', { tone: 'red', title: 'Reminders escalated', status: 'Escalated', statusTone: 'red', body: rows([['ok', 'Reminder 1: no reply'], ['warn', 'Reminder 2 (urgent) sent'], ['warn', 'Escalated to Chetanya Kaushal']]) });
+    feed({ name: 'Chetanya Kaushal', initials: 'CK', color: '#ff9f0a', time: 'Now', tone: 'amber', body: 'Tanuj Maniyar hasn’t replied to 2 reminders and GST is due tomorrow. Calling him now.' });
+    stage(2, 'done'); badge('Escalated', 'red'); hint('Tanuj finally replies.', 'msg');
+    await cta('Tanuj sends his documents', 'green', 'file');
     stage(3, 'active');
     await chat('Sorry for the delay! Sending everything now.', 'in', { typing: 500, time: '11:30' });
     for (const [n, s, t] of [['Sales_Invoices_Q3.pdf', '380 KB', '11:31'], ['Purchase_Invoices_Q3.pdf', '295 KB', '11:31'], ['ITC_Summary_Q3.xlsx', '88 KB', '11:32']])
@@ -791,34 +791,34 @@ const S = [
     await sleep(300); for (const [k, [, v]] of g.entries()) { setConf('gst', k, v); await sleep(200); }
     await sleep(700);
     sysCard('gst', { tone: 'green', icon: 'check', status: 'Validated', statusTone: 'green',
-      body: rows([['ok', 'Sales invoices: 47 entries checked'], ['ok', 'Purchase invoices: 32 entries checked'], ['ok', 'ITC summary matches purchase register'], ['ok', 'Filed to /Patel_Amit/GST/Q3-2024/']]) });
+      body: rows([['ok', 'Sales invoices: 47 entries checked'], ['ok', 'Purchase invoices: 32 entries checked'], ['ok', 'ITC summary matches purchase register'], ['ok', 'Filed to /Maniyar_Tanuj/GST/Q3-2024/']]) });
     stage(3, 'done'); stage(4, 'active');
     await chat('Got everything, thanks. Your return is on priority and will be filed today.', 'out', { typing: 800, time: '11:33' });
-    const f = feed({ name: 'Dhruv Shah', initials: 'DS', color: '#30d158', time: '11:33', tone: 'green',
+    const f = feed({ name: 'Chetanya Kaushal', initials: 'CK', color: '#30d158', time: '11:33', tone: 'green',
       body: 'All 3 GST files validated. Preparing the return now.',
       extra: `<button class="opt wide">${ico('check', 16)}<b>Mark as filed and notify client</b></button>` });
-    hint('Dhruv files the return on the GST portal. Mark it as filed.', 'users');
+    hint('Chetanya files the return on the GST portal. Mark it as filed.', 'users');
     const { auto } = await waitFor([f.querySelector('.opt')], 0, 1500);
-    if (auto) f.querySelector('.nb').insertAdjacentHTML('beforeend', autoTag('Simulated: Dhruv files on the portal. Filing itself always stays with a CA.'));
+    if (auto) f.querySelector('.nb').insertAdjacentHTML('beforeend', autoTag('Simulated: Chetanya files on the portal. Filing itself always stays with a CA.'));
     sysCard('filed', { icon: 'check', tone: 'green', title: 'GST return filed', status: 'Filed', statusTone: 'green',
-      body: rows([['ok', 'Sales and purchase invoices processed'], ['ok', 'ITC matched'], ['ok', 'Acknowledgement GST24Q3AP7821']]) });
+      body: rows([['ok', 'Sales and purchase invoices processed'], ['ok', 'ITC matched'], ['ok', 'Acknowledgement GST24Q3TM7821']]) });
     badge('Filed', 'green'); stage(4, 'done'); stage(5, 'active');
-    await chat('Good news, Amit 🎉 Your <b>GST return for Q3</b> is filed.<br>Acknowledgement: <b>GST24Q3AP7821</b><br><br>Do you want the acknowledgement and summary here on WhatsApp?', 'out', { typing: 1000, time: '4:30 PM' });
-    hint('Reply as Amit: choose how to receive the files.', 'msg');
-    const { i } = await replies('Amit', ['Yes, send on WhatsApp', 'Email only, please'], 0);
+    await chat('Good news, Tanuj 🎉 Your <b>GST return for Q3</b> is filed.<br>Acknowledgement: <b>GST24Q3TM7821</b><br><br>Do you want the acknowledgement and summary here on WhatsApp?', 'out', { typing: 1000, time: '4:30 PM' });
+    hint('Reply as Tanuj: choose how to receive the files.', 'msg');
+    const { i } = await replies('Tanuj', ['Yes, send on WhatsApp', 'Email only, please'], 0);
     if (i === 0) {
       await chat('Yes please, send them here.', 'in', { typing: 300, time: '4:32 PM' });
-      await chat(fileChip('GST_Return_Q3_Amit_Patel.pdf', '445 KB'), 'out', { typing: 600, time: '4:33 PM' });
+      await chat(fileChip('GST_Return_Q3_Tanuj_Maniyar.pdf', '445 KB'), 'out', { typing: 600, time: '4:33 PM' });
       await chat(fileChip('Filing_Acknowledgement_Q3.pdf', '102 KB'), 'out', { typing: 300, time: '4:33 PM' });
       sysCard('deliv', { icon: 'send', tone: 'green', title: 'Delivered on WhatsApp', status: 'Done', statusTone: 'green',
         body: rows([['ok', 'Client chose WhatsApp delivery'], ['ok', 'Email copy sent as backup'], ['ok', 'iFirm portal updated'], ['ok', 'CRM marked Completed']]) });
-      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:33 PM', tone: 'green', body: 'Amit Patel: GST Q3 filed and delivered on WhatsApp. Portal and CRM updated.' });
+      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:33 PM', tone: 'green', body: 'Tanuj Maniyar: GST Q3 filed and delivered on WhatsApp. Portal and CRM updated.' });
     } else {
       await chat('Email only, please.', 'in', { typing: 300, time: '4:32 PM' });
       await chat('Done. Sent to your registered email 📧', 'out', { typing: 600, time: '4:32 PM' });
       sysCard('deliv', { icon: 'mail', tone: 'green', title: 'Delivered by email', status: 'Done', statusTone: 'green',
         body: rows([['ok', 'Sent to registered email (client preference)'], ['ok', 'No WhatsApp media charges'], ['ok', 'iFirm portal updated'], ['ok', 'CRM marked Completed']]) });
-      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:32 PM', tone: 'green', body: 'Amit Patel: GST Q3 filed and emailed. Portal and CRM updated.' });
+      feed({ name: 'System', initials: 'SY', color: '#8e8e93', time: '4:32 PM', tone: 'green', body: 'Tanuj Maniyar: GST Q3 filed and emailed. Portal and CRM updated.' });
     }
     stage(5, 'done'); summary(5);
     hint('Full cycle: from deadline alert to delivered acknowledgement.', 'check');

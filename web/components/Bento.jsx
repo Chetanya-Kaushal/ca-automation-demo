@@ -40,8 +40,8 @@ export default function Bento() {
             <h3 className="h3">Clients just send the photo.</h3>
             <p className="dim">Files, scans and photos sent to your business number are downloaded, sorted and acknowledged within seconds.</p>
             <div className="mini-chat" aria-hidden="true">
-              <div className="b in"><span className="fc">PDF</span>Form16_Priya.pdf</div>
-              <div className="b out">Received ✓ Filed under Priya Mehta · Form 16</div>
+              <div className="b in"><span className="fc">PDF</span>Form16_Jay.pdf</div>
+              <div className="b out">Received ✓ Filed under Jay Teli · Form 16</div>
               <div className="b out">Still needed for ITR 2025-26: Bank statement</div>
               <div className="b in typing"><i /><i /><i /></div>
             </div>
@@ -74,9 +74,9 @@ export default function Bento() {
           <div className="tile t-review bezel"><div className="core slab">
             <div className="tile-top"><Icon name="list" size={22} /><span>One-tap review</span></div>
             <div className="review" aria-hidden="true">
-              <div><span>Mehta_docs.pdf</span><em>35%</em></div>
-              <div className="ok"><span>Tally_ABCPvt.xlsx</span><em>97%</em></div>
-              <div className="ok"><span>Bank_SBI_Meera.pdf</span><em>99%</em></div>
+              <div><span>Kaushal_docs.pdf</span><em>35%</em></div>
+              <div className="ok"><span>Tally_LedgerHackers.xlsx</span><em>97%</em></div>
+              <div className="ok"><span>Bank_SBI_Tanuj.pdf</span><em>99%</em></div>
             </div>
           </div></div>
         </div>

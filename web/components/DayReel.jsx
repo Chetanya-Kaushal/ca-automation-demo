@@ -4,12 +4,12 @@ import { gsap, useGSAP } from '@/lib/gsap';
 import Icon from './Icon';
 
 const DAY = [
-  ['09:00', 'clock', 'Reminder goes out', 'GST Q3 is due in two days and Amit hasn’t sent anything. A WhatsApp nudge lists exactly what’s missing.', 'amber'],
-  ['09:00', 'send', 'Escalated tomorrow', 'Still silent the next morning. A second, urgent reminder, and Dhruv gets a call-the-client task.', 'red'],
+  ['09:00', 'clock', 'Reminder goes out', 'GST Q3 is due in two days and Tanuj hasn’t sent anything. A WhatsApp nudge lists exactly what’s missing.', 'amber'],
+  ['09:00', 'send', 'Escalated tomorrow', 'Still silent the next morning. A second, urgent reminder, and Chetanya gets a call-the-client task.', 'red'],
   ['11:31', 'chat', 'Files arrive', 'Sales invoices, purchase invoices, ITC summary. Three PDFs in a WhatsApp chat.', 'teal'],
-  ['11:31', 'spark', 'Sorted in seconds', 'Each file is matched to Amit and typed. The checklist turns green. Nobody opened a folder.', 'violet'],
-  ['16:30', 'shield', 'Filed by a CA', 'Dhruv reviews and files on the portal. Filing always stays with a person.', 'blue'],
-  ['16:33', 'check', 'Delivered', 'Return and acknowledgement land in Amit’s WhatsApp. Logged, done.', 'green'],
+  ['11:31', 'spark', 'Sorted in seconds', 'Each file is matched to Tanuj and typed. The checklist turns green. Nobody opened a folder.', 'violet'],
+  ['16:30', 'shield', 'Filed by a CA', 'Chetanya reviews and files on the portal. Filing always stays with a person.', 'blue'],
+  ['16:33', 'check', 'Delivered', 'Return and acknowledgement land in Tanuj’s WhatsApp. Logged, done.', 'green'],
 ];
 
 export default function DayReel() {

@@ -49,7 +49,7 @@ Use `WHATSAPP_TEMPLATE_LANG` if you created them in a language other than `en`.
 No AI. `src/classify.js` uses, in order:
 
 1. **PAN in the filename** that matches a client → 99%.
-2. **Learned rule**: a CA confirmed a file with the same name shape before (`ITR_Rajesh_2024.pdf` → `itr_rajesh`) → 97%.
+2. **Learned rule**: a CA confirmed a file with the same name shape before (`ITR_Chetanya_2024.pdf` → `itr_chetanya`) → 97%.
 3. **Name in the filename** + **who sent it** (phone, email or upload link, and their family/company group).
 
 85% or more is filed automatically; anything less, ambiguous, or of an unrecognised type goes to review.

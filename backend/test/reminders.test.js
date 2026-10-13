@@ -42,10 +42,10 @@ test('never twice within 20 hours', () => {
 });
 
 test('reminder text', () => {
-  const t = reminderText('Amit Patel', 'GST return Q3', '2026-10-11', ['Sales invoices', 'ITC summary'], 1);
+  const t = reminderText('Tanuj Maniyar', 'GST return Q3', '2026-10-11', ['Sales invoices', 'ITC summary'], 1);
   assert.match(t, /^Urgent: your GST return Q3 is due tomorrow/);
   assert.match(t, /• Sales invoices\n• ITC summary/);
-  assert.match(reminderText('Amit Patel', 'ITR', '2026-10-15', ['Form 16'], 5), /^Hi Amit,/);
+  assert.match(reminderText('Tanuj Maniyar', 'ITR', '2026-10-15', ['Form 16'], 5), /^Hi Tanuj,/);
 });
 
 test('WhatsApp numbers', () => {

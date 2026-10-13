@@ -122,7 +122,7 @@ h2.sec{font-size:13px;font-weight:600;color:var(--text-3);text-transform:upperca
     </div>
 
     <div class="panel upbox" id="upbox" hidden>
-      <label class="f">Sender phone or email (optional, helps matching)<input class="input" id="sender" placeholder="e.g. 9820011111 or rajesh@example.com"></label>
+      <label class="f">Sender phone or email (optional, helps matching)<input class="input" id="sender" placeholder="e.g. 9820011111 or chetanya@example.com"></label>
       <label class="drop" id="drop" tabindex="0"><span id="dropIcon"></span><b>Choose files or drop them here</b><small>Files are classified the same way as WhatsApp and email</small>
         <input type="file" id="picker" multiple hidden></label>
     </div>
@@ -149,12 +149,12 @@ h2.sec{font-size:13px;font-weight:600;color:var(--text-3);text-transform:upperca
     </div>
     <div id="view-clients" hidden>
       <form class="panel addform" id="addClient">
-        <label class="f">Name<input class="input" name="name" required placeholder="Rajesh Mehta"></label>
+        <label class="f">Name<input class="input" name="name" required placeholder="Chetanya Kaushal"></label>
         <label class="f">Type<select class="input" name="kind"><option value="individual">Individual</option><option value="company">Company</option></select></label>
         <label class="f">PAN<input class="input" name="pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase"></label>
         <label class="f">WhatsApp number<input class="input" name="phone" inputmode="tel" placeholder="98200 11111"></label>
-        <label class="f">Email<input class="input" name="email" type="email" placeholder="rajesh@example.com"></label>
-        <label class="f">Group (family or company)<input class="input" name="group_name" placeholder="Mehta family"></label>
+        <label class="f">Email<input class="input" name="email" type="email" placeholder="chetanya@example.com"></label>
+        <label class="f">Group (family or company)<input class="input" name="group_name" placeholder="Ledger Hackers"></label>
         <div class="full"><p class="err" id="clientErr" role="alert"></p><button class="btn btn-primary btn-sm" type="submit" id="addBtn"></button></div>
       </form>
       <div class="panel tbl"><table><thead><tr><th>Name</th><th>Group</th><th class="hide-sm">PAN</th><th class="hide-sm">WhatsApp</th><th class="hide-sm">Email</th><th>Docs</th><th><span class="sr">Actions</span></th></tr></thead><tbody id="clientRows"></tbody></table></div>

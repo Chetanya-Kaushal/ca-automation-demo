@@ -8,7 +8,7 @@ const CH = [
   { n: '01', eyebrow: 'Arrive', title: 'Every channel, one inbox.', body: 'WhatsApp, email and private upload links all land in the same place. No forwarding, no downloading, no renaming.',
     chips: [['chat', 'WhatsApp'], ['mail', 'docs@yourfirm'], ['link', 'Upload link']] },
   { n: '02', eyebrow: 'Read', title: 'It knows whose file it is.', body: 'PAN, names, the sender and the family or company they belong to. Confident matches are filed. The rest wait for one tap.',
-    chips: [['doc', 'Form16_Priya.pdf'], ['eye', 'Priya Mehta · Form 16'], ['spark', '2025-26 · 97% sure']] },
+    chips: [['doc', 'Form16_Jay.pdf'], ['eye', 'Jay Teli · Form 16'], ['spark', '2025-26 · 97% sure']] },
   { n: '03', eyebrow: 'Sort', title: 'Filed before you look.', body: 'Each document drops into the right client and return. Every correction your team makes becomes a rule, so it never asks twice.',
     chips: [['check', 'ITR · 9 files'], ['check', 'GST · 8 files'], ['check', 'Bank · 7 files']] },
   { n: '04', eyebrow: 'Remind', title: 'It chases. You don’t.', body: 'Due dates are tracked per client. Missing documents get a WhatsApp nudge at 7, 3 and 1 days, then the owner CA is told to call.',

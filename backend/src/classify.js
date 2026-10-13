@@ -23,7 +23,7 @@ const PAN = /[A-Z]{5}\d{4}[A-Z]/;
 
 export const stem = filename => filename.replace(/\.[^.]+$/, '');
 export const tokens = filename => stem(filename).replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-// Same shape of filename from the same client maps to the same rule: "ITR_Rajesh_2024.pdf" -> "itr_rajesh"
+// Same shape of filename from the same client maps to the same rule: "ITR_Chetanya_2024.pdf" -> "itr_chetanya"
 export const ruleKey = filename => tokens(filename).filter(t => !/\d/.test(t)).join('_');
 export const digits = s => (s || '').replace(/\D/g, '').slice(-10);
 const compact = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -56,7 +56,7 @@ function nameScore(client, toks) {
   const words = client.name.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !STOP.has(w));
   const full = compact(client.name);
   let hits = words.filter(w => toks.includes(w)).length;
-  // "ABCPvt" -> matches "ABC Pvt Ltd"
+  // "LedgerHackers" -> matches "Ledger Hackers Pvt Ltd"
   if (!hits && toks.some(t => t.length >= 4 && full.startsWith(t))) hits = 1;
   return hits;
 }
