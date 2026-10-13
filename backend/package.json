@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/classify.test.js",
+    "test": "node --test test/*.test.js",
     "db:local": "wrangler d1 execute ledger-hackers --local --file schema.sql",
     "db:remote": "wrangler d1 execute ledger-hackers --remote --file schema.sql",
     "dev": "wrangler dev",

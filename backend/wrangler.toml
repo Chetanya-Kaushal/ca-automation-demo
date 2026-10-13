@@ -15,5 +15,10 @@ database_id = "bbb3cb37-26b2-49bb-b6b7-f8159b3a1db3"
 binding = "FILES"
 id = "0a52746af9834403ad01df344b839e70"
 
+[triggers]
+crons = ["30 3 * * *"] # 09:00 IST daily: deadline reminders
+
 [vars]
 WHATSAPP_PHONE_ID = "" # Meta "Phone number ID"; leave empty to disable WhatsApp
+WHATSAPP_REMINDER_TEMPLATE = "" # approved template name, see README; empty = plain text (24 h window only)
+WHATSAPP_DELIVERY_TEMPLATE = "" # approved template with a DOCUMENT header; empty = plain document message

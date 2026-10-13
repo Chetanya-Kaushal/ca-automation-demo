@@ -46,7 +46,36 @@ td button.fn:hover{color:var(--accent)}
 .addform .full{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:flex-end}
 .upbox{padding:18px;margin-bottom:16px;display:grid;gap:12px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);z-index:50;display:flex;gap:8px;align-items:center}
+.banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--amber-soft);color:var(--amber);font-size:13.5px;margin-bottom:16px}
+.banner .i{margin-top:2px}.banner b{color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;border:1px solid var(--line-2);font-size:12.5px;font-weight:500;color:var(--text-2);cursor:pointer;user-select:none}
+.chip:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:2px}
+.filings{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.filing{padding:16px;display:flex;flex-direction:column;gap:10px}
+.filing .fh{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filing h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.filing .who{font-size:13px;color:var(--text-3)}
+.filing .fh .pill:first-of-type{margin-left:auto}
+.need{list-style:none;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px}
+.need li{display:flex;gap:5px;align-items:center}
+.need .ok{color:var(--green)}.need .no{color:var(--red)}
+.fmeta{font-size:12.5px;color:var(--text-3)}
+.ferr{font-size:12.5px;color:var(--red);display:flex;gap:6px;align-items:flex-start}
+.ferr .i{margin-top:2px}
+.factions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.deliver{display:grid;grid-template-columns:minmax(0,1fr) 180px auto;gap:8px;padding:12px;border-radius:12px;background:var(--fill)}
+.deliver input[type=file]{font-size:13px;align-self:center}
+.activity{list-style:none;padding:6px 16px}
+.activity li{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;align-items:flex-start}
+.activity li:last-child{border-bottom:0}
+.activity .i{margin-top:2px}
+.activity time{margin-left:auto;font-size:12px;color:var(--text-3);white-space:nowrap}
+h2.sec{font-size:13px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 10px}
 @media (max-width:760px){
+  .deliver{grid-template-columns:1fr}
   .stats{grid-template-columns:1fr 1fr}
   .decide{grid-template-columns:1fr}
   .addform{grid-template-columns:1fr}
@@ -80,6 +109,7 @@ td button.fn:hover{color:var(--accent)}
       <div class="seg" role="tablist" aria-label="Views" id="tabs">
         <button role="tab" data-view="review" aria-selected="true">Needs review <span class="count" id="reviewCount" hidden></span></button>
         <button role="tab" data-view="docs">All documents</button>
+        <button role="tab" data-view="filings">Deadlines</button>
         <button role="tab" data-view="clients">Clients</button>
       </div>
       <div style="display:flex;gap:8px">
@@ -100,6 +130,19 @@ td button.fn:hover{color:var(--accent)}
         <button data-s="all" aria-selected="true">All</button><button data-s="filed">Filed automatically</button><button data-s="confirmed">Confirmed by staff</button><button data-s="review">Needs review</button>
       </div></div>
       <div class="panel tbl"><table><thead><tr><th>File</th><th>Client</th><th>Type</th><th class="hide-sm">Period</th><th class="hide-sm">Channel</th><th>Status</th><th class="hide-sm">Received</th></tr></thead><tbody id="docRows"></tbody></table></div>
+    </div>
+    <div id="view-filings" hidden>
+      <div class="banner" id="waBanner" hidden></div>
+      <form class="panel addform" id="addFiling">
+        <label class="f">Client<select class="input" name="client_id" id="filingClient" required></select></label>
+        <label class="f">Filing<input class="input" name="title" required placeholder="GST return Q3"></label>
+        <label class="f">Due date<input class="input" name="due_date" type="date" required></label>
+        <div class="f" style="grid-column:1/-1">Documents the client must send<div class="chips" id="reqChips"></div></div>
+        <div class="full"><p class="err" id="filingErr" role="alert"></p><button class="btn btn-primary btn-sm" type="submit" id="addFilingBtn"></button></div>
+      </form>
+      <div class="filings" id="filingList"></div>
+      <h2 class="sec">Reminder and delivery log</h2>
+      <div class="panel"><ul class="activity" id="activity"></ul></div>
     </div>
     <div id="view-clients" hidden>
       <form class="panel addform" id="addClient">
@@ -125,7 +168,7 @@ $('#uploadBtn').innerHTML = `${ico('upload', 14)}Upload files`;
 $('#addBtn').innerHTML = `${ico('plus', 14)}Add client`;
 $('#dropIcon').innerHTML = ico('upload', 26);
 
-let token = sessionStorage.getItem('staff') || '', DOC_TYPES = [], clients = [], view = 'review', docFilter = 'all';
+let session = {}, token = sessionStorage.getItem('staff') || '', DOC_TYPES = [], clients = [], view = 'review', docFilter = 'all';
 const api = async (path, opts = {}) => {
   const r = await fetch(path, { ...opts, headers: { authorization: 'Bearer ' + token, ...(opts.body ? { 'content-type': 'application/json' } : {}), ...opts.headers } });
   if (r.status === 401) { signOut(); throw new Error('Signed out'); }
@@ -159,7 +202,7 @@ $('#loginForm').onsubmit = async e => {
   catch (err) { $('#loginErr').textContent = 'That token is not right.'; token = ''; }
 };
 async function start() {
-  const s = await api('/api/session'); DOC_TYPES = s.doc_types;
+  const s = await api('/api/session'); DOC_TYPES = s.doc_types; session = s;
   $('#login').hidden = true; $('#app').hidden = false; $('#logout').hidden = false;
   await refresh();
 }
@@ -175,6 +218,7 @@ async function refresh() {
   if (view === 'review') await renderQueue();
   if (view === 'docs') await renderDocs();
   if (view === 'clients') renderClients();
+  if (view === 'filings') await renderFilings();
 }
 
 async function renderQueue() {
@@ -259,12 +303,79 @@ $('#addClient').onsubmit = async e => {
   } catch (err) { $('#clientErr').textContent = err.message; }
 };
 
+// ─── DEADLINES ──
+$('#addFilingBtn').innerHTML = `${ico('plus', 14)}Add deadline`;
+const dueWords = d => d < 0 ? `${-d} day${d === -1 ? '' : 's'} overdue` : d === 0 ? 'Due today' : d === 1 ? 'Due tomorrow' : `${d} days left`;
+const evIcon = { reminder_sent: ['msg', 'var(--accent)'], reminder_failed: ['alert', 'var(--red)'], escalated: ['alert', 'var(--amber)'], delivered: ['check', 'var(--green)'], delivery_failed: ['alert', 'var(--red)'] };
+async function renderFilings() {
+  const b = $('#waBanner');
+  b.hidden = session.whatsapp && session.templates?.reminder && session.templates?.delivery;
+  b.innerHTML = !session.whatsapp
+    ? `${ico('alert', 16)}<span><b>WhatsApp isn't connected.</b> Deadlines are tracked, but reminders and deliveries can't be sent until the WhatsApp secrets are set (see README → Connect WhatsApp).</span>`
+    : `${ico('alert', 16)}<span><b>No approved templates set.</b> WhatsApp only lets you message a client freely within 24 hours of their last message. Reminders and deliveries outside that window will fail until you add templates (see README).</span>`;
+  $('#filingClient').innerHTML = '<option value="">Choose client…</option>' + clients.map(c => `<option value="${c.id}">${esc(c.name)}${c.phone ? '' : ' (no WhatsApp number)'}</option>`).join('');
+  if (!$('#reqChips').children.length) $('#reqChips').innerHTML = DOC_TYPES.filter(t => t !== 'Other').map(t => `<label class="chip"><input type="checkbox" name="required" value="${esc(t)}">${esc(t)}</label>`).join('');
+  const [filings, events] = await Promise.all([api('/api/filings'), api('/api/events')]);
+  $('#filingList').innerHTML = filings.length ? filings.map(f => {
+    const st = f.status === 'delivered' ? '<span class="pill t-green">Delivered</span>' : f.status === 'filed' ? '<span class="pill t-accent">Filed</span>'
+      : `<span class="pill ${f.days_left <= 1 ? 't-red' : f.days_left <= 7 ? 't-amber' : 't-neutral'}">${dueWords(f.days_left)}</span>`;
+    return `<article class="card filing" data-id="${f.id}">
+      <div class="fh"><h3>${esc(f.title)}</h3><span class="who">${esc(f.name)} · due ${esc(f.due_date)}</span>${st}${f.escalated && f.status === 'open' ? '<span class="pill t-red">Escalated</span>' : ''}
+        <button class="icon-btn" data-delf="${f.id}" aria-label="Delete deadline">${ico('trash', 15)}</button></div>
+      ${f.status === 'open' ? `<ul class="need">${f.required.map(t => f.missing.includes(t) ? `<li class="no">${ico('x', 13)}${esc(t)}</li>` : `<li class="ok">${ico('check', 13)}${esc(t)}</li>`).join('')}</ul>` : ''}
+      <div class="fmeta">${[f.reminders_sent ? `${f.reminders_sent} reminder${f.reminders_sent > 1 ? 's' : ''} sent · last ${when(f.last_reminder_at)}` : f.status === 'open' ? 'No reminders sent yet. The daily 9:00 check sends them from 7 days before the due date.' : '',
+        f.ack_no ? `Acknowledgement ${esc(f.ack_no)}` : ''].filter(Boolean).join(' · ')}</div>
+      ${f.last_error ? `<p class="ferr">${ico('alert', 13)}<span>${esc(f.last_error)}</span></p>` : ''}
+      <div class="factions">
+        ${f.status === 'open' && f.missing.length ? `<button class="btn btn-ghost btn-sm" data-remind="${f.id}">${ico('msg', 14)}Send reminder now</button>` : ''}
+        ${f.status !== 'delivered' ? `<button class="btn btn-ghost btn-sm" data-showdel="${f.id}">${ico('upload', 14)}${f.status === 'filed' ? 'Retry delivery' : 'Mark filed and send to client'}</button>` : ''}
+      </div>
+      <form class="deliver" data-deliver="${f.id}" hidden>
+        <input type="file" name="files" multiple required aria-label="Filed return or acknowledgement">
+        <input class="input" name="ack_no" placeholder="Acknowledgement no." value="${esc(f.ack_no || '')}">
+        <button class="btn btn-primary btn-sm" type="submit">${ico('msg', 14)}Send on WhatsApp</button>
+      </form>
+    </article>`;
+  }).join('') : `<div class="panel empty">${ico('check', 28)}<b>No deadlines yet</b>Add a filing above. Clients get WhatsApp reminders for missing documents as the due date approaches.</div>`;
+  $('#activity').innerHTML = events.length ? events.map(e => { const [ic, c] = evIcon[e.kind] || ['dot', 'var(--text-3)']; return `<li><span style="color:${c}">${ico(ic, 15)}</span><span>${esc(e.detail)}</span><time>${when(e.created_at)}</time></li>`; }).join('')
+    : '<li style="color:var(--text-3)">Nothing sent yet.</li>';
+}
+$('#addFiling').onsubmit = async e => {
+  e.preventDefault(); $('#filingErr').textContent = '';
+  const f = new FormData(e.target);
+  try {
+    await api('/api/filings', { method: 'POST', body: JSON.stringify({ client_id: +f.get('client_id'), title: f.get('title'), due_date: f.get('due_date'), required: f.getAll('required') }) });
+    e.target.reset(); toast('Deadline added'); renderFilings();
+  } catch (err) { $('#filingErr').textContent = err.message; }
+};
+$('#filingList').addEventListener('click', async e => {
+  const r = e.target.closest('[data-remind]'), s = e.target.closest('[data-showdel]'), d = e.target.closest('[data-delf]');
+  if (s) { const f = $(`form[data-deliver="${s.dataset.showdel}"]`); f.hidden = !f.hidden; if (!f.hidden) enter(f, 6); }
+  if (r) {
+    r.disabled = true;
+    try { await api(`/api/filings/${r.dataset.remind}/remind`, { method: 'POST' }); toast('Reminder sent on WhatsApp', 'msg'); }
+    catch (err) { toast(err.message, 'alert'); }
+    renderFilings();
+  }
+  if (d && confirm('Delete this deadline? Its reminder history stays in the log.')) { await api('/api/filings/' + d.dataset.delf, { method: 'DELETE' }); renderFilings(); }
+});
+$('#filingList').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target, btn = form.querySelector('button'); btn.disabled = true;
+  try {
+    const files = [...form.files.files];
+    const r = await sendFiles(`/api/filings/${form.dataset.deliver}/deliver`, files, { authorization: 'Bearer ' + token }, { ack_no: form.ack_no.value.trim() });
+    toast(r.status === 'delivered' ? `Sent ${r.sent.length} file${r.sent.length > 1 ? 's' : ''} to the client` : `Marked filed. ${r.errors[0] || ''}`, r.status === 'delivered' ? 'check' : 'alert');
+  } catch (err) { toast(err.message, 'alert'); }
+  renderFilings();
+});
+
 // ─── VIEWS / UPLOAD ──
 $('#tabs').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   view = b.dataset.view;
   $('#tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', x === b));
-  ['review', 'docs', 'clients'].forEach(v => ($('#view-' + v).hidden = v !== view));
+  ['review', 'docs', 'filings', 'clients'].forEach(v => ($('#view-' + v).hidden = v !== view));
   refresh();
 });
 $('#refresh').onclick = () => refresh().then(() => toast('Up to date'));
