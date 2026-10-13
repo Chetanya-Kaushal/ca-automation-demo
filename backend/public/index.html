@@ -6,6 +6,7 @@
 <title>Ledger Hackers — Document Automation</title>
 <meta name="description" content="Client documents arrive on WhatsApp and email. The system identifies owners, spots missing files, chases deadlines and routes only real decisions to the CA team.">
 <meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script>
   // Hide hero until GSAP intro runs; module removes this class (or on failure)
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('preanim');
@@ -311,7 +312,7 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
   .grid>.dash{height:520px}
   .rm{grid-template-columns:1fr}
   .rm article.wide{grid-column:auto}
-  .nav nav{display:none}
+  .nav nav a:not([href="/app"]){display:none}
   .ctl-r{width:100%;justify-content:space-between}
   .steps .lbl{font-size:10px}
 }
@@ -337,7 +338,7 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#top"><span class="mark">LH</span>Ledger Hackers</a>
-    <nav aria-label="Sections"><a href="#demo">Live demo</a><a href="#roadmap">Roadmap</a></nav>
+    <nav aria-label="Sections"><a href="#demo">Live demo</a><a href="#roadmap">Roadmap</a><a href="/app">Staff sign in</a></nav>
     <button class="icon-btn" id="themeBtn" aria-label="Theme: automatic"></button>
   </div>
 </header>
@@ -417,7 +418,7 @@ footer .wrap{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap}
       <div class="sh" data-rv>
         <p class="eyebrow">Roadmap</p>
         <h2>From demo to a firm that runs itself.</h2>
-        <p>The demo is scripted. These are the pieces that make each step real, in the order we'd build them.</p>
+        <p>The demo above is scripted. Intake and learning already run for real in the <a href="/app">staff app</a>; the rest is next, in build order.</p>
       </div>
       <div class="rm" id="rm"></div>
     </div>
@@ -857,9 +858,9 @@ load(0);
 
 // ─── ROADMAP ────────────────────────────────────────────────────────────
 const RM = [
-  ['msg', 'accent', 'Real WhatsApp and email intake', 'Connect the WhatsApp Business Cloud API and a shared inbox. Every attachment lands in the pipeline the moment it arrives, with the sender matched to the client record.', 'Step 1 · Intake', true],
+  ['msg', 'accent', 'Real WhatsApp and email intake', 'Connect the WhatsApp Business Cloud API and a shared inbox. Every attachment lands in the pipeline the moment it arrives, with the sender matched to the client record.', 'Live now · Step 1', true],
   ['brain', 'purple', 'AI document reading', 'Read PAN, name, assessment year and document type from the file itself, not the filename. Scanned photos and password-protected PDFs included.', 'Step 2 · Classify'],
-  ['sparkles', 'purple', 'Learns from every CA decision', 'Each confirmation becomes a rule. After a few, the system stops asking: the Tally decision in the demo is how Autopilot works.', 'Step 3 · Learn'],
+  ['sparkles', 'purple', 'Learns from every CA decision', 'Each confirmation becomes a rule. After a few, the system stops asking: the Tally decision in the demo is how Autopilot works.', 'Live now · Step 3'],
   ['calendar', 'amber', 'Statutory calendar and reminder cadence', 'Due dates for GST, ITR, TDS and advance tax per client. Reminders go out on a schedule, then escalate to the owner CA by call task.', 'Step 4 · Chase'],
   ['merge', 'green', 'Automatic reconciliation', 'Match purchase registers with GSTR-2B and Form 16 with 26AS and AIS. Only differences reach a person.', 'Step 5 · Validate'],
   ['shield', 'accent', 'Filing prep with a CA sign-off', 'Generate the return JSON for the GST and ITR utilities. A CA reviews and signs with a DSC before anything is filed, and every step is logged.', 'Step 6 · File', true],

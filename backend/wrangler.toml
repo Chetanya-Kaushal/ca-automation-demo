@@ -1,0 +1,19 @@
+name = "ledger-hackers"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ledger-hackers"
+database_id = "bbb3cb37-26b2-49bb-b6b7-f8159b3a1db3"
+
+[[kv_namespaces]]
+binding = "FILES"
+id = "0a52746af9834403ad01df344b839e70"
+
+[vars]
+WHATSAPP_PHONE_ID = "" # Meta "Phone number ID"; leave empty to disable WhatsApp

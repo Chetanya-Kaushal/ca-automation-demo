@@ -1,0 +1,6 @@
+STAFF_TOKEN=change-me-to-a-long-random-string
+# Optional, to test the WhatsApp webhook locally
+# WHATSAPP_TOKEN=
+# WHATSAPP_APP_SECRET=
+# WHATSAPP_VERIFY_TOKEN=
+# WHATSAPP_PHONE_ID=
