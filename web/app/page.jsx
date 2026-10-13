@@ -26,7 +26,11 @@ export default function Page() {
       onEnterBack: () => setActive(true),
     });
     // Sections are created top-to-bottom, but fonts can shift layout after load
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    // Pinned sections add height after load, so re-aim deep links like /#demo once positions are known
+    document.fonts?.ready.then(() => {
+      ScrollTrigger.refresh();
+      if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+    });
   });
 
   return (

@@ -45,6 +45,8 @@ td button.fn:hover{color:var(--accent)}
 .addform{padding:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .addform .full{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:flex-end}
 .upbox{padding:18px;margin-bottom:16px;display:grid;gap:12px}
+.doc h3 .del{margin-left:auto;display:inline-grid}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:500;box-shadow:var(--shadow-lg);z-index:50;display:flex;gap:8px;align-items:center}
 .banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--amber-soft);color:var(--amber);font-size:13.5px;margin-bottom:16px}
 .banner .i{margin-top:2px}.banner b{color:var(--text)}
@@ -129,7 +131,7 @@ h2.sec{font-size:13px;font-weight:600;color:var(--text-3);text-transform:upperca
       <div class="bar-row"><div class="seg" id="docFilter">
         <button data-s="all" aria-selected="true">All</button><button data-s="filed">Filed automatically</button><button data-s="confirmed">Confirmed by staff</button><button data-s="review">Needs review</button>
       </div></div>
-      <div class="panel tbl"><table><thead><tr><th>File</th><th>Client</th><th>Type</th><th class="hide-sm">Period</th><th class="hide-sm">Channel</th><th>Status</th><th class="hide-sm">Received</th></tr></thead><tbody id="docRows"></tbody></table></div>
+      <div class="panel tbl"><table><thead><tr><th>File</th><th>Client</th><th>Type</th><th class="hide-sm">Period</th><th class="hide-sm">Channel</th><th>Status</th><th class="hide-sm">Received</th><th><span class="sr">Delete</span></th></tr></thead><tbody id="docRows"></tbody></table></div>
     </div>
     <div id="view-filings" hidden>
       <div class="banner" id="waBanner" hidden></div>
@@ -183,7 +185,7 @@ function toast(msg, icon = 'check') {
   setTimeout(() => t.remove(), 2600);
 }
 const when = s => { const d = new Date(s.replace(' ', 'T') + 'Z'); return d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); };
-const chan = { upload: ['upload', 'Upload'], whatsapp: ['msg', 'WhatsApp'], email: ['mail', 'Email'] };
+const chan = { upload: ['upload', 'Upload'], whatsapp: ['msg', 'WhatsApp'], email: ['mail', 'Email'], outbound: ['upload', 'Sent to client'] };
 const statusPill = s => ({ filed: '<span class="pill t-green">Filed automatically</span>', confirmed: '<span class="pill t-accent">Confirmed</span>', review: '<span class="pill t-amber">Needs review</span>' }[s]);
 
 async function openFile(id) {
@@ -237,7 +239,7 @@ async function renderQueue() {
   q.insertAdjacentHTML('afterbegin', fresh.map(d => `
     <article class="card doc" data-id="${d.id}">
       <span class="ext ${extOf(d.filename)}">${extOf(d.filename).toUpperCase()}</span>
-      <h3><button class="fn" data-open="${d.id}">${esc(d.filename)}</button></h3>
+      <h3><button class="fn" data-open="${d.id}">${esc(d.filename)}</button><button class="icon-btn del" data-deldoc="${d.id}" data-name="${esc(d.filename)}" aria-label="Delete ${esc(d.filename)}">${ico('trash', 15)}</button></h3>
       <div class="sub">${ico(chan[d.channel][0], 13)}${chan[d.channel][1]}${d.sender ? ' · ' + esc(d.sender) : ''} · ${when(d.created_at)}</div>
       <div class="guess">
         <div class="top">${ico('sparkles', 14)}<span>Best guess: <b>${d.client ? esc(d.client) : 'no client'}</b> · ${esc(d.doc_type)}${d.period ? ' · ' + esc(d.period) : ''}</span>
@@ -269,8 +271,9 @@ async function renderDocs() {
   const docs = await api('/api/documents' + (docFilter === 'all' ? '' : '?status=' + docFilter));
   $('#docRows').innerHTML = docs.length ? docs.map(d => `<tr>
     <td><button class="fn" data-open="${d.id}">${esc(d.filename)}</button></td><td>${d.client ? esc(d.client) : '<span style="color:var(--text-3)">—</span>'}</td>
-    <td>${esc(d.doc_type)}</td><td class="hide-sm">${esc(d.period || '—')}</td><td class="hide-sm">${chan[d.channel][1]}</td><td>${statusPill(d.status)}</td><td class="hide-sm">${when(d.created_at)}</td></tr>`).join('')
-    : `<tr><td colspan="7" class="empty">No documents yet. Upload some, or send them on WhatsApp or email.</td></tr>`;
+    <td>${esc(d.doc_type)}</td><td class="hide-sm">${esc(d.period || '—')}</td><td class="hide-sm">${chan[d.channel][1]}</td><td>${statusPill(d.status)}</td><td class="hide-sm">${when(d.created_at)}</td>
+    <td><button class="icon-btn" data-deldoc="${d.id}" data-name="${esc(d.filename)}" aria-label="Delete ${esc(d.filename)}">${ico('trash', 15)}</button></td></tr>`).join('')
+    : `<tr><td colspan="8" class="empty">No documents yet. Upload some, or send them on WhatsApp or email.</td></tr>`;
 }
 $('#docRows').addEventListener('click', e => { const o = e.target.closest('[data-open]'); if (o) openFile(o.dataset.open); });
 $('#docFilter').addEventListener('click', e => {
@@ -302,6 +305,18 @@ $('#addClient').onsubmit = async e => {
     e.target.reset(); toast(`${c.name} added`); refresh();
   } catch (err) { $('#clientErr').textContent = err.message; }
 };
+
+// ─── DELETE ──
+async function deleteDoc(btn) {
+  if (!confirm(`Delete “${btn.dataset.name}” permanently? The file and its record are removed and can't be recovered.`)) return;
+  btn.disabled = true;
+  try {
+    await api('/api/documents/' + btn.dataset.deldoc, { method: 'DELETE' });
+    const card = btn.closest('.doc'); if (card) await leave(card);
+    toast('File deleted', 'trash'); refresh();
+  } catch (err) { btn.disabled = false; toast(err.message, 'alert'); }
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-deldoc]'); if (b) deleteDoc(b); });
 
 // ─── DEADLINES ──
 $('#addFilingBtn').innerHTML = `${ico('plus', 14)}Add deadline`;

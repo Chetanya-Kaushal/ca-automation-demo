@@ -887,7 +887,8 @@ if (gsap) {
       .fromTo('.hero [data-in]', { y: 18, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: .09 })
       .fromTo('.flow', { y: 24, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1 }, '-=.45');
     document.documentElement.classList.remove('preanim');
-    const items = gsap.utils.toArray('[data-reveal] [data-rv]');
+    // Inside the landing page's frame the demo shows at once: no scroll reveals
+    const items = document.documentElement.classList.contains('embed') ? [] : gsap.utils.toArray('[data-reveal] [data-rv]');
     gsap.set(items, { y: 22, autoAlpha: 0 });
     const io = new IntersectionObserver(es => es.forEach(e => {
       if (!e.isIntersecting) return; io.unobserve(e.target);

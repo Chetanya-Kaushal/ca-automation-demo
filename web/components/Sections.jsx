@@ -32,7 +32,7 @@ export function Demo() {
         </div>
         <div className="device bezel rv"><div className="core slab">
           {live ? (
-            <iframe src="/demo?embed=1" title="Ledger Hackers interactive demo" loading="lazy" />
+            <iframe src="/demo?embed=1" title="Ledger Hackers interactive demo" />
           ) : (
             <button className="device-cover" onClick={() => setLive(true)}>
               <span className="play glass lens"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>

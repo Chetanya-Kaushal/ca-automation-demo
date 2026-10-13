@@ -345,6 +345,19 @@ async function api(req, env, path) {
     return json({ ok: true, rule: ruleKey(doc.filename) });
   }
 
+  mm = path.match(/^\/api\/documents\/(\d+)$/);
+  if (mm && m === 'DELETE') {
+    const d = await env.DB.prepare('SELECT id, file_key FROM documents WHERE id = ?').bind(mm[1]).first();
+    if (!d) return fail(404, 'Document not found');
+    // Learned rules stay: they came from a CA decision, not from the file itself
+    await env.FILES.delete(d.file_key);
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM events WHERE document_id = ?').bind(d.id),
+      env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(d.id),
+    ]);
+    return json({ ok: true });
+  }
+
   if (path === '/api/clients' && m === 'GET') {
     const { results } = await env.DB.prepare(`SELECT c.*, (SELECT COUNT(*) FROM documents d WHERE d.client_id = c.id) AS documents FROM clients c ORDER BY c.group_name, c.name`).all();
     return json(results);
