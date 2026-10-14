@@ -6,7 +6,7 @@ import { lenis } from '@/lib/smooth';
 import { introDone } from '@/lib/intro';
 import HackerMark from './HackerMark';
 
-const LINKS = [['Story', '#story'], ['Features', '#features'], ['A day', '#day'], ['Demo', '#demo'], ['Roadmap', '#roadmap']];
+const LINKS = [['Story', '#story'], ['Features', '#features'], ['Engine', '#engine'], ['Pipeline', '#pipeline'], ['A day', '#day'], ['Demo', '#demo'], ['Roadmap', '#roadmap']];
 
 export default function Nav() {
   const [open, setOpen] = useState(false);

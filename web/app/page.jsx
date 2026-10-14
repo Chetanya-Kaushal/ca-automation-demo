@@ -9,6 +9,8 @@ import Hero from '@/components/Hero';
 import Story from '@/components/Story';
 import Bento from '@/components/Bento';
 import DayReel from '@/components/DayReel';
+import Engine from '@/components/Engine';
+import Pipeline from '@/components/Pipeline';
 import { Demo, Roadmap, Finale } from '@/components/Sections';
 
 export default function Page() {
@@ -39,6 +41,8 @@ export default function Page() {
         <Hero />
         <Story />
         <Bento />
+        <Engine />
+        <Pipeline />
         <DayReel />
         <Demo />
         <Roadmap />
