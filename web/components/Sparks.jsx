@@ -125,7 +125,7 @@ export default function Sparks() {
         if (mode[i]) { // spring toward the letter, critically damped
           vx[i] += (tx[i] - px[i]) * 46 * dt; vy[i] += (ty[i] - py[i]) * 46 * dt;
           const d = Math.exp(-9 * dt); vx[i] *= d; vy[i] *= d;
-        } else { vy[i] += 420 * dt; vx[i] *= .992; life[i] -= dt * (.95 + seed[i] * .1); // free embers burn out before they can pile up }
+        } else { vy[i] += 420 * dt; vx[i] *= .992; life[i] -= dt * (.95 + seed[i] * .1); } // free embers burn out before they can pile up
         px[i] += vx[i] * dt; py[i] += vy[i] * dt;
         if (life[i] <= 0 || py[i] > H + 40) continue;
         const tw = .55 + .45 * Math.sin(t * 9 + seed[i] * 7), a = life[i] * tw;
