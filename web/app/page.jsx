@@ -11,6 +11,7 @@ import Bento from '@/components/Bento';
 import DayReel from '@/components/DayReel';
 import Engine from '@/components/Engine';
 import Pipeline from '@/components/Pipeline';
+import Sparks from '@/components/Sparks';
 import { Demo, Roadmap, Finale } from '@/components/Sections';
 
 export default function Page() {
@@ -43,6 +44,7 @@ export default function Page() {
         <Bento />
         <Engine />
         <Pipeline />
+        <Sparks />
         <DayReel />
         <Demo />
         <Roadmap />
