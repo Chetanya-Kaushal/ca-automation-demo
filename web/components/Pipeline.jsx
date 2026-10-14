@@ -1,13 +1,12 @@
 'use client';
 import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
-import { drawFibres, drawConfidence } from './engine/draw';
+import { drawConfidence } from './engine/draw';
+import { buildRoute, drawPipeline } from './engine/pipelineDraw';
 import { useCanvas } from './Engine';
 
-gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, ScrambleTextPlugin);
+gsap.registerPlugin(ScrambleTextPlugin);
 
 // [title, key, value, key, value]
 const LANES = [
@@ -27,54 +26,64 @@ const CASES = [
 ];
 
 export default function Pipeline() {
-  const root = useRef(), board = useRef(), fib = useRef(), conf = useRef();
+  const root = useRef(), scroller = useRef(), board = useRef(), fib = useRef(), conf = useRef(), counter = useRef();
   const [ci, setCi] = useState(0);
-  const st = useRef({ rgb: CASES[0].rgb, gaps: [] });
+  const st = useRef({ rgb: CASES[0].rgb, gaps: [], route: null, cards: [], decisions: 1610, last: 0, userAt: -1e9 });
   const c = CASES[ci];
 
+  // One frame loop: canvas, card highlights synced to the moving head, live counter, mobile follow-cam
   const drawF = useRef(), drawC = useRef();
-  drawF.current = (ctx, w, h, t) => drawFibres(ctx, w, h, t, st.current.gaps, st.current.rgb);
+  drawF.current = (ctx, w, h, t) => {
+    const S = st.current;
+    drawPipeline(ctx, w, h, t, S);
+    const R = S.route;
+    if (R) S.cards.forEach((el, k) => el.classList.toggle('hit', R.alpha > .05 && R.p >= R.at[k]));
+    S.decisions += Math.min(.1, t - S.last) * 41; S.last = t;
+    if (counter.current) counter.current.textContent = Math.floor(S.decisions).toLocaleString('en-IN');
+    const sc = scroller.current;
+    if (R && sc.scrollWidth > sc.clientWidth + 4 && performance.now() - S.userAt > 2500) {
+      const head = R.pts[Math.min(R.pts.length - 1, Math.floor(R.p * (R.pts.length - 1)))];
+      sc.scrollLeft += (head[0] - sc.clientWidth / 2 - sc.scrollLeft) * .06;
+    }
+  };
   drawC.current = (ctx, w, h, t) => drawConfidence(ctx, w, h, t, st.current.rgb);
   useCanvas(fib, drawF);
   useCanvas(conf, drawC);
 
   useGSAP((ctx, contextSafe) => {
-    const b = board.current;
-    // Fibre bundles sit in the gaps between lanes
+    const b = board.current, S = st.current;
+    const lanes = () => [...b.querySelectorAll('.pl-lane')];
     const measure = () => {
-      const r = b.getBoundingClientRect(), lanes = [...b.querySelectorAll('.pl-lane')].map(l => l.getBoundingClientRect());
-      st.current.gaps = lanes.slice(1).map((l, i) => (lanes[i].right + l.left) / 2 - r.left);
+      const r = b.getBoundingClientRect(), ls = lanes().map(l => l.getBoundingClientRect());
+      S.gaps = ls.slice(1).map((l, i) => (ls[i].right + l.left) / 2 - r.left);
+    };
+    const routeFor = cs => {
+      const r = b.getBoundingClientRect();
+      S.cards = cs.path.map((p, k) => lanes()[k].querySelectorAll('.pl-card')[p]);
+      const pts = S.cards.map(el => { const q = el.getBoundingClientRect(); return { l: q.left - r.left, r: q.right - r.left, y: q.top - r.top + q.height / 2 }; });
+      return Object.assign(buildRoute(pts, S.gaps), { p: 0, alpha: 1, ring: 0 });
     };
     measure();
     const ro = new ResizeObserver(measure); ro.observe(b);
+    const touched = () => (S.userAt = performance.now());
+    scroller.current.addEventListener('pointerdown', touched);
+    scroller.current.addEventListener('wheel', touched, { passive: true });
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      CASES[0].path.forEach((p, k) => b.querySelectorAll('.pl-lane')[k].querySelectorAll('.pl-card')[p].classList.add('hit'));
+      S.route = Object.assign(routeFor(CASES[0]), { p: 1 });
       return () => ro.disconnect();
     }
     let i = 0, tl;
     const play = contextSafe(() => {
       const cs = CASES[i];
-      st.current.rgb = cs.rgb; root.current.style.setProperty('--c', cs.rgb); setCi(i);
-      const r = b.getBoundingClientRect();
-      const cards = cs.path.map((p, k) => b.querySelectorAll('.pl-lane')[k].querySelectorAll('.pl-card')[p]);
-      const pts = cards.map(el => { const q = el.getBoundingClientRect(); return { l: q.left - r.left, r: q.right - r.left, y: q.top - r.top + q.height / 2 }; });
-      // orthogonal connector: out of each card's right edge, across the gap, into the next card
-      let d = `M${pts[0].l - 30} ${pts[0].y} H${pts[0].r}`;
-      for (let k = 1; k < pts.length; k++) { const mid = (pts[k - 1].r + pts[k].l) / 2; d += ` H${mid} V${pts[k].y} H${pts[k].r}`; }
-      const path = b.querySelector('.pl-path'), dot = b.querySelector('.pl-dot'), ring = b.querySelector('.pl-ring');
-      path.setAttribute('d', d);
-      const last = pts[pts.length - 1];
+      S.rgb = cs.rgb; root.current.style.setProperty('--c', cs.rgb); setCi(i);
+      const R = S.route = routeFor(cs);
       tl = gsap.timeline({ onComplete: () => { i = (i + 1) % CASES.length; play(); } })
-        .add(() => b.querySelectorAll('.pl-card.hit').forEach(el => el.classList.remove('hit')), 0)
         .to('.pl-case-name', { duration: .6, scrambleText: { text: cs.name.toUpperCase(), chars: '01#%_', speed: .8 } }, 0)
         .to('.pl-route', { duration: .9, scrambleText: { text: cs.route, chars: '01→.', speed: 1 } }, .1)
-        .fromTo(path, { drawSVG: '0%', autoAlpha: 1 }, { drawSVG: '100%', duration: 1.8, ease: 'power2.inOut' }, .2)
-        .fromTo(dot, { autoAlpha: 1 }, { motionPath: { path, align: path, alignOrigin: [.5, .5] }, duration: 1.8, ease: 'power2.inOut' }, .2);
-      cards.forEach((el, k) => tl.add(() => el.classList.add('hit'), .2 + k * .45));
-      tl.set(ring, { x: last.r - 30, y: last.y, scale: .2, autoAlpha: 1 }, 2)
-        .to(ring, { scale: 1.6, autoAlpha: 0, duration: 1.1, ease: 'expo.out' }, 2)
-        .to({}, { duration: 1.6 })
-        .to([path, dot], { autoAlpha: 0, duration: .4 });
+        .to(R, { p: 1, duration: 2.8, ease: 'sine.inOut' }, .15)
+        .to(R, { ring: 1, duration: 1.3, ease: 'expo.out' }, 2.95)
+        .to({}, { duration: 1.5 })
+        .to(R, { alpha: 0, duration: .7, ease: 'sine.in' });
     });
     play();
     const vis = ScrollTrigger.create({ trigger: root.current, start: 'top bottom', end: 'bottom top', onToggle: s => tl && (s.isActive ? tl.play() : tl.pause()) });
@@ -82,7 +91,6 @@ export default function Pipeline() {
     return () => { ro.disconnect(); vis.kill(); tl?.kill(); };
   }, { scope: root });
 
-  const decisions = 1610 + ci * 379;
   return (
     <section ref={root} id="pipeline" className="pl-sec" style={{ '--c': CASES[0].rgb }}>
       <div className="wrap pl-head">
@@ -90,10 +98,10 @@ export default function Pipeline() {
         <h2 className="h2">Every file takes<br /><span className="dim">the same four steps.</span></h2>
         <p className="lede">Intake, identify, gate, act. Watch six real cases from our system light up their route.</p>
       </div>
-      <div className="wrap">
+      <div className="wrap pl-wide">
         <div className="pl-screen" role="img" aria-label={`Decision pipeline animation. Current case: ${c.name}, ${c.route}`}>
           <header className="pl-stats">
-            <div><small>Decisions · this run</small><b>{decisions.toLocaleString('en-IN')}</b></div>
+            <div><small>Decisions · this run</small><b ref={counter}>1,610</b></div>
             <div><small>Median latency · sim</small><b>~180<span> ms</span></b></div>
             <div><small>Auto-filed</small><b>86%</b></div>
             <div><small>Confidence · live</small><b>{c.conf.toFixed(2)}</b><i className="pl-meter"><span style={{ transform: `scaleX(${c.conf})` }} /><em /></i></div>
@@ -103,17 +111,18 @@ export default function Pipeline() {
             <b className="pl-case-name">{CASES[0].name.toUpperCase()}</b>
             <p className="pl-route">{CASES[0].route}</p>
           </div>
-          <div ref={board} className="pl-board">
-            <canvas ref={fib} className="pl-fib" aria-hidden="true" />
-            {LANES.map(([n, name, cards]) => (
-              <div key={n} className="pl-lane">
-                <h3><span>{n}</span> {name}</h3>
-                {cards.map(([t, k1, v1, k2, v2]) => (
-                  <div key={t} className="pl-card"><b>{t}</b><dl><dt>{k1}</dt><dd>{v1}</dd><dt>{k2}</dt><dd>{v2}</dd></dl><i /></div>
-                ))}
-              </div>
-            ))}
-            <svg className="pl-svg" aria-hidden="true"><path className="pl-path" /><circle className="pl-dot" r="5" /><circle className="pl-ring" r="34" /></svg>
+          <div ref={scroller} className="pl-board">
+            <div ref={board} className="pl-inner">
+              <canvas ref={fib} className="pl-fib" aria-hidden="true" />
+              {LANES.map(([n, name, cards]) => (
+                <div key={n} className="pl-lane">
+                  <h3><span>{n}</span> {name}</h3>
+                  {cards.map(([t, k1, v1, k2, v2]) => (
+                    <div key={t} className="pl-card"><b>{t}</b><dl><dt>{k1}</dt><dd>{v1}</dd><dt>{k2}</dt><dd>{v2}</dd></dl><i /></div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
           <footer className="pl-foot">
             <div className="pl-stream"><small>Confidence stream · sim</small><canvas ref={conf} aria-hidden="true" /></div>
@@ -138,9 +147,9 @@ export default function Pipeline() {
         .pl-badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;color:#07080d;background:rgb(var(--c))}
         .pl-case-name{font-size:clamp(1.1rem,2.4vw,1.7rem);letter-spacing:.06em;color:#fff}
         .pl-route{width:100%;font-size:12px;color:#aab2c4;min-height:1.4em}
-        .pl-board{position:relative;display:grid;grid-template-columns:repeat(4,minmax(170px,1fr));gap:56px;padding:18px 18px 22px;overflow-x:auto}
-        .pl-fib,.pl-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-        .pl-svg{overflow:visible}
+        .pl-board{overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}.pl-board::-webkit-scrollbar{display:none}
+        .pl-inner{position:relative;display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:64px;padding:18px 22px 26px;min-width:100%;width:max-content}
+        .pl-fib{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
         .pl-lane{position:relative;display:flex;flex-direction:column;gap:10px}
         .pl-lane h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfd6e4;padding-bottom:8px;border-bottom:1px solid rgba(var(--c),.5)}
         .pl-lane h3 span{color:rgb(var(--c))}
@@ -149,17 +158,26 @@ export default function Pipeline() {
         .pl-card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-top:6px;font-size:10px}
         .pl-card dt{color:#6e7588}.pl-card dd{text-align:right;color:#aab2c4}
         .pl-card i{display:block;width:30%;height:2px;margin:8px 0 0 auto;border-radius:2px;background:rgba(var(--c),.55)}
-        .pl-card.hit{background:rgba(var(--c),.12);box-shadow:inset 0 0 0 1.5px rgb(var(--c)),0 0 24px rgba(var(--c),.55),0 0 60px rgba(var(--c),.25)}
-        .pl-path{fill:none;stroke:rgb(var(--c));stroke-width:2.5;filter:drop-shadow(0 0 6px rgb(var(--c)));visibility:hidden}
-        .pl-dot{fill:#fff;filter:drop-shadow(0 0 8px rgb(var(--c)));visibility:hidden}
-        .pl-ring{fill:none;stroke:rgb(var(--c));stroke-width:2;visibility:hidden}
+        .pl-card{z-index:1}
+        .pl-card.hit{background:rgba(var(--c),.16);animation:pl-breathe 1.8s ease-in-out infinite}
+        .pl-card.hit b{color:#fff;text-shadow:0 0 12px rgb(var(--c))}
+        @keyframes pl-breathe{
+          0%,100%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 16px 2px rgba(var(--c),.7),0 0 54px 8px rgba(var(--c),.3)}
+          50%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 26px 5px rgba(var(--c),.95),0 0 90px 18px rgba(var(--c),.45)}}
         .pl-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:14px 18px 18px;border-top:1px solid rgba(255,255,255,.08)}
         .pl-stream canvas{width:100%;height:90px;margin-top:6px}
         .pl-cases{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start}
         .pl-cases li{padding:8px 10px;border-radius:8px;font-size:12px;color:#cfd6e4;background:rgba(255,255,255,.04);transition:background-color .5s,color .5s}
         .pl-cases li small{display:block;font-size:10px;color:#6e7588}
         .pl-cases li.on{background:rgb(var(--k));color:#07080d}.pl-cases li.on small{color:rgba(0,0,0,.6)}
-        @media (max-width:900px){.pl-stats{grid-template-columns:1fr 1fr}.pl-foot{grid-template-columns:1fr}.pl-board{grid-template-columns:repeat(4,200px)}}
+        @media (max-width:900px){.pl-stats{grid-template-columns:1fr 1fr}.pl-foot{grid-template-columns:1fr}}
+        @media (max-width:760px){
+          .pl-wide{width:100%}.pl-screen{border-radius:0}
+          .pl-inner{grid-template-columns:repeat(4,82vw);gap:44px;padding:20px 9vw 28px}
+          .pl-lane h3{font-size:13px}.pl-card{padding:14px 16px}.pl-card b{font-size:15px}.pl-card dl{font-size:12.5px}
+          .pl-case-name{font-size:1.5rem}.pl-route{font-size:13px}.pl-stats b{font-size:1.9rem}
+        }
+        @media (prefers-reduced-motion:reduce){.pl-card.hit{animation:none;box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 20px rgba(var(--c),.7)}}
       `}</style>
     </section>
   );

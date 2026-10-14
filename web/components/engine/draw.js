@@ -86,35 +86,6 @@ export function drawTimeline(ctx, w, h, samples, tags, shift) {
   for (let k = 1; k < 6; k++) ctx.fillText(`T-${(6 - k) * 2}M`, w * k / 6 - 12, h - 2);
 }
 
-// Decision pipeline: glowing fibre bundles in the lane gaps, tinted by the active case colour
-const FIBRES = Array.from({ length: 14 }, (_, i) => ({ o: i / 13 - .5, p: i * 2.3, a: 6 + (i * 29 % 11) }));
-const SPARKS = Array.from({ length: 90 }, (_, i) => ({ g: i % 5, f: (i * 0.37) % 1, s: .04 + (i * 13 % 7) / 140, o: (i * 0.61) % 1 - .5 }));
-export function drawFibres(ctx, w, h, t, gaps, rgb) {
-  ctx.clearRect(0, 0, w, h);
-  ctx.globalCompositeOperation = 'lighter';
-  gaps.forEach((gx, gi) => {
-    for (const f of FIBRES) {
-      const hot = Math.abs(f.o) < .18; // the core of each bundle carries the case colour
-      ctx.strokeStyle = hot ? `rgba(${rgb},.32)` : 'rgba(210,225,255,.12)';
-      ctx.lineWidth = hot ? 1.4 : 1;
-      ctx.beginPath();
-      for (let y = -10; y <= h + 10; y += 12) {
-        const x = gx + f.o * 26 + Math.sin(y * .02 + t * .9 + f.p + gi) * f.a + Math.sin(y * .006 - t * .4 + f.p) * f.a;
-        y < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-  });
-  for (const s of SPARKS) { // particles drifting down the bundles
-    const gx = gaps[s.g % gaps.length];
-    if (gx == null) continue;
-    const y = ((s.f + t * s.s) % 1) * h, x = gx + s.o * 30 + Math.sin(y * .02 + t + s.o * 9) * 8;
-    ctx.fillStyle = s.g % 2 ? 'rgba(255,255,255,.75)' : `rgba(${rgb},.85)`;
-    ctx.fillRect(x, y, 1.6, 1.6);
-  }
-  ctx.globalCompositeOperation = 'source-over';
-}
-
 // Three-line confidence stream around the 0.85 gate
 export function drawConfidence(ctx, w, h, t, rgb) {
   ctx.clearRect(0, 0, w, h);
