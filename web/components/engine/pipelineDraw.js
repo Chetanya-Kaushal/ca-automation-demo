@@ -38,7 +38,11 @@ export function drawPipeline(ctx, w, h, t, st) {
   ctx.clearRect(0, 0, w, h);
   const { gaps, rgb, route } = st;
   const breathe = .82 + .18 * Math.sin(t * 2.2);
-  const head = route && route.pts.length ? route.pts[Math.min(route.pts.length - 1, Math.floor(route.p * (route.pts.length - 1)))] : null;
+  let head = null;
+  if (route && route.pts.length) {
+    const f = route.p * (route.pts.length - 1), i = Math.min(route.pts.length - 2, Math.floor(f)), u = f - i, a = route.pts[i], b = route.pts[i + 1];
+    head = [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+  }
   ctx.globalCompositeOperation = 'lighter';
   ctx.lineCap = 'round';
 
@@ -58,7 +62,7 @@ export function drawPipeline(ctx, w, h, t, st) {
   gaps.forEach((gx, gi) => {
     const heat = head ? Math.exp(-Math.abs(gx - head[0]) / 90) * (route.alpha ?? 1) : 0;
     const halo = ctx.createLinearGradient(gx - 40, 0, gx + 40, 0); // soft light column behind the strands
-    halo.addColorStop(0, 'rgba(0,0,0,0)'); halo.addColorStop(.5, heat > .05 ? `rgba(${rgb},${.14 * heat * breathe})` : `rgba(150,190,255,${.05 * breathe})`); halo.addColorStop(1, 'rgba(0,0,0,0)');
+    halo.addColorStop(0, 'rgba(0,0,0,0)'); halo.addColorStop(.5, heat > .05 ? `rgba(${rgb},${.26 * heat * breathe})` : `rgba(150,190,255,${.07 * breathe})`); halo.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = halo; ctx.fillRect(gx - 40, 0, 80, h);
     for (const f of FIBRES) {
       const core = Math.abs(f.o) < .2;
@@ -67,6 +71,19 @@ export function drawPipeline(ctx, w, h, t, st) {
         : `rgba(${core ? '235,242,255' : '170,200,255'},${(core ? .34 : .15) * breathe})`;
       ctx.beginPath();
       for (let y = -12; y <= h + 12; y += 10) { const x = fx(gx, y, t, f, gi); y < 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+      ctx.stroke();
+    }
+  });
+
+  // light pulses running down every bundle, always: the board never sits still
+  gaps.forEach((gx, gi) => {
+    for (let k = 0; k < 3; k++) {
+      const f = FIBRES[(k * 7 + gi * 5) % FIBRES.length], y0 = ((t * .22 + k / 3 + gi * .17) % 1) * (h + 160) - 80;
+      const grad = ctx.createLinearGradient(0, y0 - 90, 0, y0);
+      grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(1, k === 1 ? `rgba(${rgb},.9)` : 'rgba(255,255,255,.85)');
+      ctx.strokeStyle = grad; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let y = y0 - 90; y <= y0; y += 6) { const x = fx(gx, y, t, f, gi); y === y0 - 90 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
       ctx.stroke();
     }
   });
@@ -82,22 +99,25 @@ export function drawPipeline(ctx, w, h, t, st) {
 
   // the route: layered glow passes make a neon tube
   if (route && route.pts.length && route.alpha > 0) {
-    const n = Math.max(2, Math.floor(route.p * (route.pts.length - 1)) + 1);
-    const pass = (width, a) => {
+    const n = Math.max(1, Math.floor(route.p * (route.pts.length - 1)) + 1);
+    const pass = (width, a, from = 0) => {
       ctx.lineWidth = width; ctx.strokeStyle = a;
-      ctx.beginPath(); ctx.moveTo(route.pts[0][0], route.pts[0][1]);
-      for (let i = 1; i < n; i++) ctx.lineTo(route.pts[i][0], route.pts[i][1]);
+      ctx.beginPath(); ctx.moveTo(route.pts[from][0], route.pts[from][1]);
+      for (let i = from + 1; i < n; i++) ctx.lineTo(route.pts[i][0], route.pts[i][1]);
+      if (head && route.p < 1) ctx.lineTo(head[0], head[1]); // end exactly at the gliding orb
       ctx.stroke();
     };
     const A = route.alpha * breathe;
-    pass(26, `rgba(${rgb},${.06 * A})`);
-    pass(13, `rgba(${rgb},${.16 * A})`);
-    pass(6, `rgba(${rgb},${.55 * A})`);
-    pass(2, `rgba(255,255,255,${.85 * A})`);
+    pass(44, `rgba(${rgb},${.05 * A})`);
+    pass(26, `rgba(${rgb},${.1 * A})`);
+    pass(13, `rgba(${rgb},${.24 * A})`);
+    pass(6, `rgba(${rgb},${.65 * A})`);
+    pass(2.2, `rgba(255,255,255,${.9 * A})`);
+    if (route.p < 1) pass(5, `rgba(255,255,255,${.5 * A})`, Math.max(0, n - 22)); // comet tail behind the orb
     if (head && route.p < 1) { // glowing orb leading the line
-      const g = ctx.createRadialGradient(head[0], head[1], 0, head[0], head[1], 46);
+      const g = ctx.createRadialGradient(head[0], head[1], 0, head[0], head[1], 64);
       g.addColorStop(0, `rgba(255,255,255,${A})`); g.addColorStop(.25, `rgba(${rgb},${.8 * A})`); g.addColorStop(1, `rgba(${rgb},0)`);
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(head[0], head[1], 46, 0, 7); ctx.fill();
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(head[0], head[1], 64, 0, 7); ctx.fill();
     }
     if (route.ring > 0) { // ripple where the route lands
       const [x, y] = route.pts[route.pts.length - 1], k = route.ring;

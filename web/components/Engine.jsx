@@ -37,12 +37,21 @@ export function useCanvas(ref, draw) {
   }, [ref, draw]);
 }
 
+// Counts up to each new value instead of jumping
+function Num({ v, tag: Tag = 'em' }) {
+  const el = useRef(), cur = useRef({ n: v });
+  useEffect(() => {
+    const t = gsap.to(cur.current, { n: v, duration: .9, ease: 'power2.out', onUpdate: () => el.current && (el.current.textContent = Math.round(cur.current.n)) });
+    return () => t.kill();
+  }, [v]);
+  return <Tag ref={el}>{v}</Tag>;
+}
+
 export default function Engine() {
   const root = useRef(), strands = useRef(), wave = useRef();
   const [tick, setTick] = useState(0);
   const [toasts, setToasts] = useState([]);
   const seq = useRef(0);
-  const [clock, setClock] = useState('');
   const live = useRef({ samples: Array.from({ length: 42 }, (_, i) => .25 + .2 * Math.sin(i * .7)), tags: [], shift: 0 });
   const ev = FEED[tick % FEED.length], active = ev[0];
 
@@ -50,7 +59,8 @@ export default function Engine() {
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const id = setInterval(() => setTick(k => k + 1), 1800);
-    const c = setInterval(() => setClock(new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })), 1000);
+    // clock writes straight to the DOM: no React re-render every second
+    const c = setInterval(() => { if (clockEl.current) clockEl.current.textContent = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false }); }, 1000);
     return () => { clearInterval(id); clearInterval(c); };
   }, []);
   useEffect(() => {
@@ -63,11 +73,16 @@ export default function Engine() {
     setToasts(ts => [...ts.slice(-1), { id: ++seq.current, text: ev[2] }]);
   }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const drawS = useRef(), drawW = useRef();
-  drawS.current = (ctx, w, h, t) => drawStrands(ctx, w, h, t, AGENTS, active);
-  drawW.current = (ctx, w, h) => {
-    const L = live.current, from = L.samples.length - 41;
-    L.shift = Math.max(0, L.shift - .03);
+  const drawS = useRef(), drawW = useRef(), clockEl = useRef();
+  const act = useRef({ v: AGENTS.map((_, i) => (i ? 0 : 1)), last: 0, wlast: 0 });
+  drawS.current = (ctx, w, h, t) => {
+    const A = act.current, k = 1 - Math.exp(-Math.min(.1, t - A.last) * 4); // frame-rate independent easing
+    A.last = t; A.v = A.v.map((v, i) => v + ((i === active ? 1 : 0) - v) * k);
+    drawStrands(ctx, w, h, t, AGENTS, A.v);
+  };
+  drawW.current = (ctx, w, h, t) => {
+    const L = live.current, from = L.samples.length - 41, A = act.current;
+    L.shift = L.shift * Math.exp(-Math.min(.1, t - A.wlast) * 3.5); A.wlast = t; // eased glide, same speed at 60 or 120 Hz
     drawTimeline(ctx, w, h, L.samples.slice(from), L.tags.map(g => ({ ...g, i: g.i - from })), L.shift);
   };
   useCanvas(strands, drawS);
@@ -96,7 +111,7 @@ export default function Engine() {
         <div className="eng-screen" role="img" aria-label="Simulated live console of the six Ledger Hackers agents processing documents">
           <header className="eng-top">
             <b>LEDGER ENGINE</b><span className="eng-live">● LIVE · SIMULATED FEED</span>
-            <span>LOOP <em>{14 + Math.floor(tick / 6)}</em></span><span>TASKS <em>{docs}</em></span><span>IST <em>{clock || '--:--:--'}</em></span>
+            <span>LOOP <em>{14 + Math.floor(tick / 6)}</em></span><span>TASKS <Num v={docs} /></span><span>IST <em ref={clockEl}>--:--:--</em></span>
           </header>
           <div className="eng-main">
             <ol className="eng-agents">
@@ -111,10 +126,10 @@ export default function Engine() {
               </div>
             </div>
             <aside className="eng-side">
-              <div className="eng-kpi"><small>Documents filed today</small><b>{docs}</b><i>+{3 + (tick % 4)} last minute</i></div>
+              <div className="eng-kpi"><small>Documents filed today</small><Num v={docs} tag="b" /><i>+{3 + (tick % 4)} last minute</i></div>
               <div className="eng-grid">
-                <div><small>Auto-filed</small><b>{auto}%</b></div><div><small>Reminders</small><b>{38 + tick}</b></div>
-                <div><small>Needs review</small><b>{3 + (tick % 3)}</b></div><div><small>Delivered</small><b>{21 + Math.floor(tick / 2)}</b></div>
+                <div><small>Auto-filed</small><b>{auto}%</b></div><div><small>Reminders</small><Num v={38 + tick} tag="b" /></div>
+                <div><small>Needs review</small><b>{3 + (tick % 3)}</b></div><div><small>Delivered</small><Num v={21 + Math.floor(tick / 2)} tag="b" /></div>
               </div>
               <div className="eng-approve">
                 <small>Approval queue</small><b>YOU APPROVE. <span>IT FILES.</span></b>
@@ -133,7 +148,7 @@ export default function Engine() {
         .eng-sec{padding:clamp(100px,14vh,180px) 0 clamp(60px,10vh,120px)}
         .eng-head{display:flex;flex-direction:column;align-items:flex-start;gap:22px;margin-bottom:56px}
         .eng-stage{perspective:1600px;padding:0 max(12px,calc((100vw - 1320px)/2))}
-        .eng-screen{position:relative;transform-origin:50% 100%;border-radius:22px;overflow:hidden;font-family:var(--mono);color:#cfe0ff;
+        .eng-screen{position:relative;transform-origin:50% 100%;will-change:transform;backface-visibility:hidden;border-radius:22px;overflow:hidden;font-family:var(--mono);color:#cfe0ff;
           background:linear-gradient(180deg,#0b1736,#081028 60%,#060b1c);box-shadow:0 0 0 1px rgba(127,176,255,.25),0 0 0 10px #05070d,0 0 0 11px rgba(255,255,255,.08),0 60px 120px -30px rgba(40,90,255,.45)}
         .eng-screen::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 90% at 50% 50%,transparent 60%,rgba(0,0,0,.45)),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
         .eng-top{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(127,176,255,.18);font-size:11px;letter-spacing:.08em;color:#8aa3d6}

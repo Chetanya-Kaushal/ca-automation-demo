@@ -43,7 +43,8 @@ export default function Pipeline() {
     const sc = scroller.current;
     if (R && sc.scrollWidth > sc.clientWidth + 4 && performance.now() - S.userAt > 2500) {
       const head = R.pts[Math.min(R.pts.length - 1, Math.floor(R.p * (R.pts.length - 1)))];
-      sc.scrollLeft += (head[0] - sc.clientWidth / 2 - sc.scrollLeft) * .06;
+      const k = 1 - Math.exp(-Math.min(.1, t - (S.scrollT ?? t)) * 3); S.scrollT = t; // same speed at any refresh rate
+      sc.scrollLeft += (head[0] - sc.clientWidth / 2 - sc.scrollLeft) * k;
     }
   };
   drawC.current = (ctx, w, h, t) => drawConfidence(ctx, w, h, t, st.current.rgb);
@@ -153,17 +154,19 @@ export default function Pipeline() {
         .pl-lane{position:relative;display:flex;flex-direction:column;gap:10px}
         .pl-lane h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfd6e4;padding-bottom:8px;border-bottom:1px solid rgba(var(--c),.5)}
         .pl-lane h3 span{color:rgb(var(--c))}
-        .pl-card{position:relative;padding:10px 12px;border-radius:10px;background:rgba(18,20,30,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:box-shadow .5s var(--out),background-color .5s var(--out)}
+        .pl-card{position:relative;transition:background-color .5s cubic-bezier(.2,0,0,1);padding:10px 12px;border-radius:10px;background:rgba(18,20,30,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:box-shadow .5s var(--out),background-color .5s var(--out)}
         .pl-card b{font-size:12px;color:#eef1f7}.pl-card b::before{content:"■ ";color:rgba(var(--c),.8);font-size:9px}
         .pl-card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-top:6px;font-size:10px}
         .pl-card dt{color:#6e7588}.pl-card dd{text-align:right;color:#aab2c4}
         .pl-card i{display:block;width:30%;height:2px;margin:8px 0 0 auto;border-radius:2px;background:rgba(var(--c),.55)}
         .pl-card{z-index:1}
-        .pl-card.hit{background:rgba(var(--c),.16);animation:pl-breathe 1.8s ease-in-out infinite}
+        .pl-card.hit{background:rgba(var(--c),.18);animation:pl-in .55s cubic-bezier(.2,0,0,1) both,pl-breathe 2s ease-in-out .55s infinite}
         .pl-card.hit b{color:#fff;text-shadow:0 0 12px rgb(var(--c))}
+        @keyframes pl-in{from{box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 0 0 0 rgba(var(--c),0),0 0 0 0 rgba(var(--c),0)}
+          to{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 22px 3px rgba(var(--c),.8),0 0 70px 12px rgba(var(--c),.38)}}
         @keyframes pl-breathe{
-          0%,100%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 16px 2px rgba(var(--c),.7),0 0 54px 8px rgba(var(--c),.3)}
-          50%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 26px 5px rgba(var(--c),.95),0 0 90px 18px rgba(var(--c),.45)}}
+          0%,100%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 22px 3px rgba(var(--c),.8),0 0 70px 12px rgba(var(--c),.38)}
+          50%{box-shadow:inset 0 0 0 2px rgb(var(--c)),0 0 34px 7px rgba(var(--c),1),0 0 120px 26px rgba(var(--c),.5)}}
         .pl-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;padding:14px 18px 18px;border-top:1px solid rgba(255,255,255,.08)}
         .pl-stream canvas{width:100%;height:90px;margin-top:6px}
         .pl-cases{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start}

@@ -12,7 +12,8 @@ function strandX(s, y, t, cx, spread) {
   return cx + s.o * spread + Math.sin(y * .011 + t * .55 + s.p1) * s.a + Math.sin(y * .005 - t * .35 + s.p2) * s.a * .8;
 }
 
-export function drawStrands(ctx, w, h, t, agents, active) {
+// `act` holds each agent's eased 0..1 activeness, so the highlight glides between agents
+export function drawStrands(ctx, w, h, t, agents, act) {
   const cx = w / 2, spread = Math.min(w * .32, 240);
   ctx.clearRect(0, 0, w, h);
   const g = ctx.createRadialGradient(cx, h / 2, 0, cx, h / 2, Math.max(w, h) * .55);
@@ -22,7 +23,7 @@ export function drawStrands(ctx, w, h, t, agents, active) {
   ctx.globalCompositeOperation = 'lighter';
   ctx.lineWidth = 1;
   for (const s of STRANDS) {
-    ctx.strokeStyle = `rgba(${150 + (s.a * 3 | 0)},${185 + (s.a | 0)},255,.13)`;
+    ctx.strokeStyle = `rgba(${150 + (s.a * 3 | 0)},${185 + (s.a | 0)},255,${.11 + .04 * Math.sin(t * 1.6 + s.p1)})`;
     ctx.beginPath();
     for (let y = -10; y <= h + 10; y += 10) {
       const x = strandX(s, y, t, cx, spread);
@@ -37,17 +38,18 @@ export function drawStrands(ctx, w, h, t, agents, active) {
     const s = STRANDS[(j * 8 + 3) % N];
     const y = h * (.18 + .64 * (.5 + .5 * Math.sin(t * .18 + j * 1.9)));
     const x = strandX(s, y, t, cx, spread);
-    const on = j === active, r = on ? 7 : 4;
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, on ? 34 : 18);
-    glow.addColorStop(0, on ? 'rgba(160,220,255,.95)' : 'rgba(120,170,255,.7)'); glow.addColorStop(1, 'rgba(60,110,255,0)');
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, on ? 34 : 18, 0, 7); ctx.fill();
+    const a = act[j], breathe = 1 + .12 * Math.sin(t * 2.4 + j);
+    const gr = (18 + 18 * a) * breathe, r = 4 + 3 * a;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, gr);
+    glow.addColorStop(0, `rgba(${120 + 40 * a | 0},${170 + 50 * a | 0},255,${.7 + .25 * a})`); glow.addColorStop(1, 'rgba(60,110,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, gr, 0, 7); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
-    if (on) { // expanding ping on the working agent
-      const k = (t * 1.2) % 1;
-      ctx.strokeStyle = `rgba(127,216,255,${1 - k})`; ctx.beginPath(); ctx.arc(x, y, 8 + k * 26, 0, 7); ctx.stroke();
+    if (a > .05) { // expanding ping on the working agent, fading with its activeness
+      const k = (t * 1.1) % 1;
+      ctx.strokeStyle = `rgba(127,216,255,${(1 - k) * a})`; ctx.beginPath(); ctx.arc(x, y, 8 + k * 28, 0, 7); ctx.stroke();
     }
     const left = x > cx;
-    ctx.fillStyle = on ? '#e9f7ff' : 'rgba(200,220,255,.75)';
+    ctx.fillStyle = `rgba(${200 + 33 * a | 0},${220 + 27 * a | 0},255,${.75 + .25 * a})`;
     ctx.textAlign = left ? 'left' : 'right';
     ctx.fillText(`${String(j + 1).padStart(2, '0')} · ${name.toUpperCase()}`, x + (left ? 12 : -12), y + 3.5);
   });
@@ -60,9 +62,11 @@ export function drawTimeline(ctx, w, h, samples, tags, shift) {
   ctx.clearRect(0, 0, w, h);
   const step = w / (samples.length - 2), base = h - 14;
   const xs = i => (i - 1 + shift) * step;
-  const line = () => {
-    ctx.beginPath();
-    samples.forEach((v, i) => { const x = xs(i), y = base - v * (h - 34); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  const line = () => { // curve through midpoints: a smooth wave, not a zigzag
+    const P = samples.map((v, i) => [xs(i), base - v * (h - 34)]);
+    ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]);
+    for (let i = 1; i < P.length - 1; i++) ctx.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
+    ctx.lineTo(P[P.length - 1][0], P[P.length - 1][1]);
   };
   line(); ctx.lineTo(w, base); ctx.lineTo(0, base); ctx.closePath();
   const f = ctx.createLinearGradient(0, 10, 0, base);
