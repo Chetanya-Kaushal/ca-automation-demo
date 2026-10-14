@@ -10,7 +10,7 @@ export const damp = (cur, to, k, dt) => cur + (to - cur) * (1 - Math.exp(-k * dt
 
 export const SRC = [[-7.4, 2.3], [-7.9, 0], [-7.4, -2.3]];          // WhatsApp, email, upload
 export const FOLD = [[6.6, 2.25], [6.6, 0], [6.6, -2.25]];          // ITR, GST, Bank
-export const PHONE = [-6.3, 0, 0.2];
+export const PHONE = [-4.9, -.1, .8];
 export const TINTS = ['#7fb0ff', '#7ef0c8', '#ffcf7a'].map(c => new THREE.Color(c));
 export const N = 24;
 

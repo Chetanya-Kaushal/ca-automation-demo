@@ -9,7 +9,9 @@ const SLIDES = [
 ];
 // Beat timings (seconds into a slide)
 const REVEAL = 0, BOLT = 3.0, BOLT_END = 4.0, FOUNTAIN = 4.0, FORM = 4.5, RELEASE = 6.6, NEXT = 7.4;
-const MAX = 9000;
+const MAX = 18000;
+// Swirling flow field: every particle is advected by it, so sparks curl like a plume instead of flying straight
+const flow = (x, y, t) => Math.sin(x * .006 + t * .6) * 2.1 + Math.cos(y * .008 - t * .45) * 1.7 + Math.sin((x + y) * .003 + t * .3);
 
 export default function Sparks() {
   const root = useRef(), cv = useRef();
@@ -42,8 +44,8 @@ export default function Sparks() {
       });
       const bfs = Math.max(48, Math.min(150, W * (s.burst.length > 8 ? .085 : .12)));
       return { fs, words, top: H * .42 - fs, bottom: y + fs * .3, x0, x1: x0 + maxW,
-        wordPts: sample(words.map(o => [o.w, o.x, o.y]), `600 ${fs}px ${font}`, Math.max(2, fs / 26)),
-        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(2, bfs / 42)), released: 0 };
+        wordPts: sample(words.map(o => [o.w, o.x, o.y]), `600 ${fs}px ${font}`, Math.max(1.5, fs / 40)),
+        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(1.5, bfs / 64)), released: 0 };
     };
     const sample = (items, f, step) => {
       const o = document.createElement('canvas'); o.width = W; o.height = H;
@@ -111,29 +113,38 @@ export default function Sparks() {
       // 3 · a sparkler fountain rises, then 4 · embers fly up and settle into the burst word
       if (t >= FOUNTAIN && t < FORM + .4) for (let k = 0; k < 50; k++)
         spawn(L.x0 + W * .12 + (Math.random() - .5) * 60, H + 10, (Math.random() - .5) * 260, -380 - Math.random() * 520, 0);
-      if (t >= FORM && !L.formed) {
-        L.formed = true;
-        L.burstPts.forEach(([x, y]) => spawn(L.x0 + W * .12 + (Math.random() - .5) * 120, H * .9 + Math.random() * 60, (Math.random() - .5) * 400, -500 - Math.random() * 300, 1, x, y));
+      if (t >= FORM) { // stream embers into the letters left to right over ~0.9s, so the word fills in
+        const want = Math.min(L.burstPts.length, Math.floor(L.burstPts.length * (t - FORM) / .9));
+        for (L.sent = L.sent || 0; L.sent < want; L.sent++) {
+          const [x, y] = L.burstPts[L.sent];
+          spawn(L.x0 + W * .12 + (Math.random() - .5) * 140, H * .92 + Math.random() * 50, (Math.random() - .5) * 300, -420 - Math.random() * 260, 1, x, y);
+        }
       }
-      if (t >= RELEASE && !L.dropped) { L.dropped = true; for (let i = 0; i < count; i++) if (mode[i]) { mode[i] = 0; vy[i] = -Math.random() * 60; vx[i] = (Math.random() - .5) * 80; } }
+      if (t >= RELEASE && !L.dropped) { L.dropped = true; for (let i = 0; i < count; i++) if (mode[i] === 1) { mode[i] = 2; vx[i] = (Math.random() - .5) * 30; vy[i] = -20 - Math.random() * 40; } }
 
       // integrate + draw embers additively
       ctx.globalCompositeOperation = 'lighter';
       const heat = Math.max(0, Math.min(1, (t - FORM - .6) / 1.2)); // assembled text cools from gold toward white-hot
       let alive = 0;
       for (let i = 0; i < count; i++) {
-        if (mode[i]) { // spring toward the letter, critically damped
-          vx[i] += (tx[i] - px[i]) * 46 * dt; vy[i] += (ty[i] - py[i]) * 46 * dt;
-          const d = Math.exp(-9 * dt); vx[i] *= d; vy[i] *= d;
-        } else { vy[i] += 420 * dt; vx[i] *= .992; life[i] -= dt * (.95 + seed[i] * .1); } // free embers burn out before they can pile up
+        const a = flow(px[i], py[i], t);
+        if (mode[i] === 1) { // seek the letter: swirl while far away, settle into place as it arrives
+          const dx = tx[i] - px[i], dy = ty[i] - py[i], near = Math.exp(-Math.hypot(dx, dy) / 70);
+          vx[i] += (dx * 30 + Math.cos(a) * 260 * (1 - near)) * dt; vy[i] += (dy * 30 + Math.sin(a) * 260 * (1 - near)) * dt;
+          const d = Math.exp(-(6 + 6 * near) * dt); vx[i] *= d; vy[i] *= d;
+        } else if (mode[i] === 2) { // deform: letters melt into drifting, curling smoke
+          vx[i] += Math.cos(a) * 180 * dt; vy[i] += (Math.sin(a) * 180 - 40) * dt;
+          const d = Math.exp(-1.6 * dt); vx[i] *= d; vy[i] *= d; life[i] -= dt * (.55 + seed[i] * .06);
+        } else { // fountain / bolt embers: gravity plus swirl, burning out before they pile up
+          vy[i] += 380 * dt; vx[i] += Math.cos(a) * 120 * dt; vx[i] *= .992; life[i] -= dt * (.95 + seed[i] * .1);
+        }
         px[i] += vx[i] * dt; py[i] += vy[i] * dt;
         if (life[i] <= 0 || py[i] > H + 40) continue;
-        const tw = .55 + .45 * Math.sin(t * 9 + seed[i] * 7), a = life[i] * tw;
-        const r = mode[i] ? 255 : 255, gg = mode[i] ? 185 + 55 * heat | 0 : 170 + 40 * life[i] | 0, b = mode[i] ? 95 + 120 * heat | 0 : 80;
-        ctx.fillStyle = `rgba(${r},${gg},${b},${a})`;
-        const s = mode[i] ? 2.4 : 1.6;
+        const tw = .6 + .4 * Math.sin(t * 9 + seed[i] * 7), al = Math.min(1, life[i] * tw * 1.2);
+        const r = 255, gg = mode[i] ? 196 + 30 * heat | 0 : 170 + 40 * life[i] | 0, b = mode[i] ? 105 + 45 * heat | 0 : 80; // stays warm gold, only a hint of white-hot
+        ctx.fillStyle = `rgba(${r},${gg},${b},${al})`;
+        const s = mode[i] === 1 ? 1.3 : 1;
         ctx.fillRect(px[i] - s / 2, py[i] - s / 2, s, s);
-        if (mode[i]) { ctx.fillStyle = `rgba(255,${150 + 60 * heat | 0},70,${.1 * a})`; ctx.fillRect(px[i] - 4, py[i] - 4, 8, 8); } // soft halo: letters glow, not just dot
         // keep live particles packed at the front of the arrays
         px[alive] = px[i]; py[alive] = py[i]; vx[alive] = vx[i]; vy[alive] = vy[i]; tx[alive] = tx[i]; ty[alive] = ty[i];
         life[alive] = life[i]; mode[alive] = mode[i]; seed[alive] = seed[i]; alive++;
