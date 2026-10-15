@@ -3,10 +3,10 @@ import { useRef } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import HackerMark from './HackerMark';
+import Laptop from './Laptop';
 
 gsap.registerPlugin(ScrambleTextPlugin);
 
-const MAIN = 'https://ledger-hackers.ledger-hackers-backend.workers.dev';
 
 // The site after the opening, told like a calm product film. One pinned stage, scrubbed by scroll:
 // 1 a stack of documents settles, "Too many files. Too many deadlines."  2 a laptop on a desk asks "Everything scattered?"
@@ -117,7 +117,7 @@ export default function Film() {
           <div className="lamp"><i className="dome" /><i className="stem" /><i className="ball" /><i className="foot" /></div>
           <div className="cup"><i /><i /><i /></div>
           <div className="ghost">Everything scattered</div>
-          <div className="laptop"><div className="lid"><div className="scr"><p>{words('Everything scattered?')}</p></div></div><div className="base" /></div>
+          <div className="laptop"><Laptop><div className="scr"><p>{words('Everything scattered?')}</p></div></Laptop></div>
         </div>
 
         {/* 3 */}
@@ -155,7 +155,7 @@ export default function Film() {
         <div className="scene cta">
           <h2>Paperwork that files itself.</h2>
           <p>WhatsApp, email and upload links land in one inbox. Ledger Hackers names, sorts, chases and delivers.</p>
-          <div className="cta-row"><a className="pill solid" href={`${MAIN}/app`}>Open the staff app</a><a className="pill" href={`${MAIN}/#demo`}>Try the demo</a></div>
+          <div className="cta-row"><a className="pill solid" href="/app">Open the staff app</a><a className="pill" href="#demo">Try the demo</a></div>
         </div>
       </div>
 
@@ -204,10 +204,8 @@ export default function Film() {
         .cup i:nth-child(1){left:25%;transform:rotate(-12deg)} .cup i:nth-child(2){left:48%} .cup i:nth-child(3){left:70%;transform:rotate(10deg)}
         .ghost{position:absolute;top:30%;left:0;right:0;text-align:center;font-size:12vw;font-weight:600;color:#fff;filter:blur(10px);white-space:nowrap;letter-spacing:-.04em}
         .laptop{position:absolute;left:50%;bottom:24%;width:min(46vw,760px);transform:translateX(-50%)}
-        .lid{aspect-ratio:1.55;border-radius:14px;background:#111;padding:1.6%;box-shadow:0 30px 60px -20px rgba(60,30,10,.5)}
-        .scr{height:100%;border-radius:6px;display:grid;place-items:center;background:linear-gradient(160deg,#eef6ee,#cfe6d4)}
+        .scr{height:100%;display:grid;place-items:center;background:linear-gradient(160deg,#eef6ee,#cfe6d4)}
         .scr p{font-size:clamp(12px,1.2vw,18px);font-weight:500;color:#1c2a21}
-        .base{height:12px;margin:0 -4%;border-radius:0 0 14px 14px;background:linear-gradient(180deg,#3a3a3a,#141414)}
 
         .s3 .line,.s4 .line{position:absolute}
         .s4 .line{font-size:clamp(16px,1.6vw,24px)}
