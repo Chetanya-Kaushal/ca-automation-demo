@@ -11,15 +11,18 @@ const FIRST = 'LEDGER!', SECOND = 'HACKERS';
 
 // sample the team cutouts (transparent PNGs) into dust targets: brighter skin and shirts get more specks
 const TEAM = ['/team/0.png', '/team/1.png', '/team/2.png'];
-async function portraitPoints(w, h, step) {
+async function portraitPoints(w, h, density) {
   const c = document.createElement('canvas'); c.width = w * 3; c.height = h;
   const g = c.getContext('2d', { willReadFrequently: true });
   const imgs = await Promise.all(TEAM.map(src => { const i = new Image(); i.src = src; return i.decode().then(() => i); }));
   imgs.forEach((im, k) => { const s = Math.min(w / im.width, h / im.height); g.drawImage(im, k * w + (w - im.width * s) / 2, h - im.height * s, im.width * s, im.height * s); });
   const d = g.getImageData(0, 0, c.width, h).data, pts = [];
-  for (let y = 0; y < h; y += step) for (let x = 0; x < c.width; x += step) {
-    const k = (y * c.width + x) * 4, a = d[k + 3] / 255, lum = (d[k] * .3 + d[k + 1] * .59 + d[k + 2] * .11) / 255;
-    if (a > .5 && Math.random() < .07 + Math.pow(lum, 1.15) * .95) pts.push(x + (Math.random() - .5) * step, y + (Math.random() - .5) * step, lum);
+  // every pixel is a candidate; contrast is lifted so eyes, beards and collars read clearly in dust
+  for (let y = 0; y < h; y++) for (let x = 0; x < c.width; x++) {
+    const k = (y * c.width + x) * 4, a = d[k + 3] / 255;
+    if (a < .5) continue;
+    const lum = Math.min(1, Math.max(0, ((d[k] * .3 + d[k + 1] * .59 + d[k + 2] * .11) / 255 - .08) * 1.45));
+    if (Math.random() < (.05 + Math.pow(lum, 1.25) * .9) * density) pts.push(x + Math.random() - .5, y + Math.random() - .5, lum);
   }
   return pts;
 }
@@ -43,7 +46,12 @@ export default function Reveal() {
     // ── dust: scattered specks drift, then converge into the mark
     const cv = $('.rv-dust'), cx = cv.getContext('2d');
     const dust = { k: 0, a: 0, P: null };
-    const size = () => { const dpr = Math.min(devicePixelRatio || 1, 1.5); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+    // ~100k specks: written straight into one pixel buffer per frame (fillRect per speck would be far too slow)
+    let S = 1, img = null, buf = null, still = -1;
+    const size = () => {
+      S = Math.min(devicePixelRatio || 1, 1.5); cv.width = innerWidth * S | 0; cv.height = innerHeight * S | 0;
+      img = cx.createImageData(cv.width, cv.height); buf = new Uint32Array(img.data.buffer); still = -1;
+    };
     size();
     const prep = async () => {
       // three portraits side by side, standing behind the word like the reel's single portrait
@@ -51,7 +59,7 @@ export default function Reveal() {
       const tall = innerWidth < innerHeight, weak = (navigator.hardwareConcurrency || 4) < 8;
       const ph = tall ? innerWidth * .32 / .875 : Math.min(innerHeight * .56, innerWidth * .36), pw = Math.round(ph * .875);
       const ox = (innerWidth - pw * 3) / 2, oy = tall ? innerHeight * .64 - ph : innerHeight * .1;
-      const pts = await portraitPoints(pw, Math.round(ph), weak && !tall ? 3 : 2);
+      const pts = await portraitPoints(pw, Math.round(ph), weak ? .6 : 1);
       const n = pts.length / 3, P = { n, tx: new Float32Array(n), ty: new Float32Array(n), sx: new Float32Array(n), sy: new Float32Array(n), d: new Float32Array(n), l: new Float32Array(n) };
       for (let i = 0; i < n; i++) {
         P.tx[i] = ox + pts[i * 3]; P.ty[i] = oy + pts[i * 3 + 1]; P.l[i] = pts[i * 3 + 2];
@@ -62,17 +70,24 @@ export default function Reveal() {
     const ready = prep();
     const draw = t => {
       raf = requestAnimationFrame(draw);
-      cx.clearRect(0, 0, innerWidth, innerHeight);
-      const P = dust.P; if (!P || dust.a <= 0) return;
-      const time = t / 1000;
+      const P = dust.P;
+      if (!P || dust.a <= 0) { if (still !== 0) { cx.clearRect(0, 0, cv.width, cv.height); still = 0; } return; }
+      if (dust.k >= 1 && still === dust.a) return; // fully formed and not fading: the last frame still stands
+      still = dust.k >= 1 ? dust.a : -1;
+      buf.fill(0);
+      const W = cv.width, H = cv.height, time = t / 1000;
       for (let i = 0; i < P.n; i++) {
-        const u = Math.min(1, Math.max(0, (dust.k - P.d[i]) / (1 - .45))), e = 1 - Math.pow(1 - u, 3);
-        const j = (1 - e) * 6 + .6; // loose specks wander, settled ones only shimmer
-        const x = P.sx[i] + (P.tx[i] - P.sx[i]) * e + Math.sin(time * 1.3 + i) * j;
-        const y = P.sy[i] + (P.ty[i] - P.sy[i]) * e + Math.cos(time * 1.1 + i * 1.7) * j;
-        cx.fillStyle = `rgba(${200 + P.l[i] * 55 | 0},${208 + P.l[i] * 47 | 0},255,${(dust.a * (.25 + .75 * e) * (.45 + P.l[i] * .55)).toFixed(3)})`;
-        cx.fillRect(x, y, 1.2, 1.2);
+        const u = Math.min(1, Math.max(0, (dust.k - P.d[i]) / (1 - .45))), e = 1 - (1 - u) * (1 - u) * (1 - u);
+        let x = P.sx[i] + (P.tx[i] - P.sx[i]) * e, y = P.sy[i] + (P.ty[i] - P.sy[i]) * e;
+        if (e < 1) { const j = (1 - e) * 6; x += Math.sin(time * 1.3 + i) * j; y += Math.cos(time * 1.1 + i * 1.7) * j; } // loose specks wander
+        const px = x * S | 0, py = y * S | 0;
+        if (px < 0 || py < 0 || px >= W || py >= H) continue;
+        const l = P.l[i], a = dust.a * (.3 + .7 * e) * (.35 + l * .65) * 255 | 0, k = py * W + px;
+        if ((buf[k] >>> 24) >= a) continue;
+        const r = 196 + l * 59 | 0, g = 204 + l * 51 | 0;
+        buf[k] = ((a << 24) | (255 << 16) | (g << 8) | r) >>> 0;
       }
+      cx.putImageData(img, 0, 0);
     };
 
     const run = async () => {
