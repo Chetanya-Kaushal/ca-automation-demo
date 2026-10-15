@@ -9,7 +9,20 @@ import LaptopDemo from '@/components/LaptopDemo';
 
 // The calm cut: the opening, the card spiral, then the whole story told as one scroll-driven film, then the live demo in a laptop and the decision pipeline.
 export default function Page() {
-  useGSAP(() => startSmoothScroll());
+  useGSAP(() => {
+    const stop = startSmoothScroll();
+    // any laptop: if real frames run long, switch to the lighter look once (no live blur, lighter effects)
+    let slow = 0, total = 0, last = 0, raf;
+    const html = document.documentElement;
+    const watch = t => {
+      if (last) { const d = t - last; if (d < 250) { total++; if (d > 28) slow++; } }
+      last = t;
+      if (total >= 240) { if (slow / total > .2) html.classList.add('weak'); slow = total = 0; }
+      if (!html.classList.contains('weak')) raf = requestAnimationFrame(watch);
+    };
+    raf = requestAnimationFrame(watch);
+    return () => { stop(); cancelAnimationFrame(raf); };
+  });
   return (
     <>
       <Reveal />

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Spiral from './Spiral';
 
@@ -8,6 +8,14 @@ import Spiral from './Spiral';
 const R = 2.6, PER_TURN = 7, RISE = .68, FOV = 35, CARD = [1.14, 1.22];
 
 export default function SpiralCanvas({ spin }) {
+  // render only while the hero is on screen; phones get a lighter pixel density
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const el = document.querySelector('.sh'); if (!el) return;
+    const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting)); io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const coarse = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
   const layout = useMemo(() => {
     const aspect = innerWidth / innerHeight, t = Math.tan(FOV * Math.PI / 360), tH = t * aspect;
     const byWidth = R * 1.08 / (.98 * tH) + R * .3; // phones: the ribbon runs to the screen edges, like the reference
@@ -18,7 +26,7 @@ export default function SpiralCanvas({ spin }) {
     return { d, l: { r: R, perTurn: PER_TURN, rise: RISE, count, speed: .42, card: CARD, position: [0, 0, 0], trim: false, spin } };
   }, [spin]);
   return (
-    <Canvas dpr={[1, Math.min(devicePixelRatio || 1, 2)]} camera={{ fov: FOV, position: [0, 0, layout.d] }}
+    <Canvas frameloop={on ? 'always' : 'never'} dpr={[1, Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2)]} camera={{ fov: FOV, position: [0, 0, layout.d] }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
       <ambientLight intensity={1.1} />
       <directionalLight position={[3, 5, 8]} intensity={1.6} />

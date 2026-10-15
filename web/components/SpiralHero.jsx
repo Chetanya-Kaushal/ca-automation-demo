@@ -15,7 +15,8 @@ export default function SpiralHero() {
 
   return (
     <section className="sh" aria-label="Ledger Hackers">
-      {ok && <SpiralCanvas spin={spin} />}
+      {/* browsers without WebGL 2 get a still of the spiral instead of an empty stage */}
+      {ok ? <SpiralCanvas spin={spin} /> : <img className="sh-still" src="/media/spiral-still.jpg" alt="" />}
       <div className="sh-ui">
         <span className="sh-tl">Ledger Hackers ®</span>
         <span className="sh-plus" aria-hidden="true">+</span>
@@ -28,6 +29,7 @@ export default function SpiralHero() {
       <style>{`
         .sh{position:relative;height:100vh;height:100svh;overflow:hidden;background:#ececea;color:#121212}
         .sh canvas{position:absolute!important;inset:0}
+        .sh-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
         .sh-ui{position:absolute;inset:0;pointer-events:none;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
         .sh-ui>span{position:absolute}
         .sh-tl{left:20px;top:22px;display:flex;align-items:center;gap:8px}.sh-tl::before{content:"";width:7px;height:7px;border:1.2px solid currentColor}

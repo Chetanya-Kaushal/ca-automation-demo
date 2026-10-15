@@ -27,10 +27,13 @@ export default function Film() {
     const film = root.current;
     gsap.set(film, THEMES.mint);
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // phones: same motion without animated CSS blur, which is the costly part on mobile GPUs
+    const lite = matchMedia('(pointer: coarse)').matches || document.documentElement.classList.contains('weak');
+    const B = px => (lite ? 'blur(0px)' : `blur(${px}px)`);
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     // word in: blur → sharp, a little rise; word out: blur away
-    const wIn = (sel, at, each = .12) => tl.fromTo(sel, { autoAlpha: 0, y: 10, filter: 'blur(10px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: .55, stagger: each }, at);
-    const wOut = (sel, at) => tl.to(sel, { autoAlpha: 0, filter: 'blur(12px)', y: -6, duration: .45, ease: 'power2.in' }, at);
+    const wIn = (sel, at, each = .12) => tl.fromTo(sel, { autoAlpha: 0, y: 10, filter: B(10) }, { autoAlpha: 1, y: 0, filter: B(0), duration: .55, stagger: each }, at);
+    const wOut = (sel, at) => tl.to(sel, { autoAlpha: 0, filter: B(12), y: -6, duration: .45, ease: 'power2.in' }, at);
     const theme = (name, at, d = .9) => tl.to(film, { ...THEMES[name], duration: d, ease: 'power2.inOut' }, at);
 
     // 1 · documents tumble together and settle; the first lines
@@ -38,14 +41,14 @@ export default function Film() {
       autoAlpha: 0, duration: 1.3, stagger: .1, ease: 'expo.out' }, 0)
       .to('.stack', { y: -8, duration: 2, ease: 'sine.inOut' }, 1.4);
     wIn('.s1a .fw', 1.6); wIn('.s1b .fw', 2.4);
-    tl.to('.stack', { scale: .92, autoAlpha: 0, filter: 'blur(14px)', duration: .6, ease: 'power2.in' }, 4.1);
+    tl.to('.stack', { scale: .92, autoAlpha: 0, filter: B(14), duration: .6, ease: 'power2.in' }, 4.1);
     wOut('.s1 .fw', 4.1);
 
     // 2 · the desk: a laptop asks the question while ghost words drift across the room
     tl.fromTo('.desk', { autoAlpha: 0, scale: 1.08 }, { autoAlpha: 1, scale: 1, duration: .7 }, 4.5)
       .fromTo('.ghost', { xPercent: 30, autoAlpha: 0 }, { xPercent: -30, autoAlpha: .35, duration: 2, ease: 'none' }, 4.6);
     wIn('.scr .fw', 4.9, .35);
-    tl.to('.desk', { autoAlpha: 0, scale: 1.04, filter: 'blur(16px)', duration: .6, ease: 'power2.in' }, 6.3);
+    tl.to('.desk', { autoAlpha: 0, scale: 1.04, filter: B(16), duration: .6, ease: 'power2.in' }, 6.3);
 
     // 3 · two short lines, word by word
     wIn('.s3a .fw', 6.7, .14); wOut('.s3a .fw', 7.7);
@@ -60,24 +63,24 @@ export default function Film() {
     // 5 · a flash of light, a glass panel sharpens, its tiles fill
     theme('green', 11.4, 1.2);
     tl.fromTo('.flash', { autoAlpha: 0, scale: .6 }, { autoAlpha: 1, scale: 1.2, duration: .5 }, 11.4).to('.flash', { autoAlpha: 0, duration: .6 }, 11.9)
-      .fromTo('.dash', { autoAlpha: 0, scale: .88, filter: 'blur(26px)' }, { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: .9 }, 11.7)
+      .fromTo('.dash', { autoAlpha: 0, scale: .88, filter: B(26) }, { autoAlpha: 1, scale: 1, filter: B(0), duration: .9 }, 11.7)
       .fromTo('.tile', { autoAlpha: 0, scale: .94 }, { autoAlpha: 1, scale: 1, duration: .45, stagger: .05 }, 12.2)
       .fromTo('.tile>*', { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: .45, stagger: .02 }, 12.7)
-      .to('.dash', { autoAlpha: 0, scale: 1.05, filter: 'blur(24px)', duration: .7, ease: 'power2.in' }, 13.9);
+      .to('.dash', { autoAlpha: 0, scale: 1.05, filter: B(24), duration: .7, ease: 'power2.in' }, 13.9);
 
     // 6 · capture every … (the last word cycles)
     wIn('.s6 .lead .fw', 14.3, .1);
     const cyc = gsap.utils.toArray('.cyc>span');
     cyc.forEach((el, i) => {
       const at = 14.6 + i * .8;
-      tl.fromTo(el, { autoAlpha: 0, yPercent: -60, filter: 'blur(8px)' }, { autoAlpha: 1, yPercent: 0, filter: 'blur(0px)', duration: .45 }, at);
-      if (i < cyc.length - 1) tl.to(el, { autoAlpha: 0, yPercent: 60, filter: 'blur(8px)', duration: .35, ease: 'power2.in' }, at + .6);
+      tl.fromTo(el, { autoAlpha: 0, yPercent: -60, filter: B(8) }, { autoAlpha: 1, yPercent: 0, filter: B(0), duration: .45 }, at);
+      if (i < cyc.length - 1) tl.to(el, { autoAlpha: 0, yPercent: 60, filter: B(8), duration: .35, ease: 'power2.in' }, at + .6);
     });
     wOut('.s6 .fw, .cyc>span', 17);
 
     // 7 · everything connected
     wIn('.s7a', 17.3, 0);
-    tl.fromTo('.s7b', { autoAlpha: 0, x: 30, y: -18, filter: 'blur(10px)' }, { autoAlpha: 1, x: 0, y: 0, filter: 'blur(0px)', duration: .6 }, 17.6);
+    tl.fromTo('.s7b', { autoAlpha: 0, x: 30, y: -18, filter: B(10) }, { autoAlpha: 1, x: 0, y: 0, filter: B(0), duration: .6 }, 17.6);
     wOut('.s7 span', 18.5);
 
     // 8 · all with → the mark
@@ -93,10 +96,10 @@ export default function Film() {
     let raf;
     const place = () => {
       raf = requestAnimationFrame(place);
-      const on = +getComputedStyle(desk).opacity > .01;
+      const on = tl.time() > 4.45 && tl.time() < 7; // the desk scene's window on the timeline (no layout reads)
       if (on && vid.paused) vid.play().catch(() => {}); else if (!on && !vid.paused) vid.pause();
       if (!on) return;
-      const W = desk.clientWidth, H = desk.clientHeight, portrait = W < H;
+      const W = innerWidth, H = desk.offsetHeight || innerHeight, portrait = W < H;
       const k = portrait ? W / (1920 * .5) : Math.max(W / 1920, H / 1080), dw = 1920 * k, dh = 1080 * k, ox = (W - dw) / 2, oy = (H - dh) / 2;
       Object.assign(vid.style, { width: `${dw}px`, height: `${dh}px`, left: `${ox}px`, top: `${oy}px` });
       const t = vid.currentTime, i = Math.min(TRACK.length - 2, Math.max(0, TRACK.findIndex(r => r[0] > t) - 1));
