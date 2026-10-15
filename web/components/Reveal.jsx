@@ -3,25 +3,23 @@ import { useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
 import { finishIntro, videoDone } from '@/lib/intro';
 import { lenis } from '@/lib/smooth';
-import HackerMark from './HackerMark';
 
 // Stage two of the opening, after the intro video. A glowing dot bounces in, a stroke drops onto it to make "!",
 // letters tumble in beside it to spell LEDGER!, then flip one by one into HACKERS. The word sinks and grows while
-// dust gathers into the hacker mark behind it, then the whole layer hands over to the hero.
+// dust gathers into portraits of the three of us behind it, then the whole layer hands over to the hero.
 const FIRST = 'LEDGER!', SECOND = 'HACKERS';
 
-// sample the hacker mark into dust targets: denser where the artwork is brighter
-async function markPoints(src, w, h) {
-  const svg = new XMLSerializer().serializeToString(src);
-  const img = new Image();
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-  await img.decode();
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d'); g.drawImage(img, 0, 0, w, h);
-  const d = g.getImageData(0, 0, w, h).data, pts = [];
-  for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
-    const k = (y * w + x) * 4, a = d[k + 3] / 255, lum = (d[k] * .3 + d[k + 1] * .59 + d[k + 2] * .11) / 255;
-    if (a > .5 && Math.random() < .28 + lum * .9) pts.push(x, y, lum);
+// sample the team cutouts (transparent PNGs) into dust targets: brighter skin and shirts get more specks
+const TEAM = ['/team/0.png', '/team/1.png', '/team/2.png'];
+async function portraitPoints(w, h, step) {
+  const c = document.createElement('canvas'); c.width = w * 3; c.height = h;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  const imgs = await Promise.all(TEAM.map(src => { const i = new Image(); i.src = src; return i.decode().then(() => i); }));
+  imgs.forEach((im, k) => { const s = Math.min(w / im.width, h / im.height); g.drawImage(im, k * w + (w - im.width * s) / 2, h - im.height * s, im.width * s, im.height * s); });
+  const d = g.getImageData(0, 0, c.width, h).data, pts = [];
+  for (let y = 0; y < h; y += step) for (let x = 0; x < c.width; x += step) {
+    const k = (y * c.width + x) * 4, a = d[k + 3] / 255, lum = (d[k] * .3 + d[k + 1] * .59 + d[k + 2] * .11) / 255;
+    if (a > .5 && Math.random() < .07 + Math.pow(lum, 1.15) * .95) pts.push(x + (Math.random() - .5) * step, y + (Math.random() - .5) * step, lum);
   }
   return pts;
 }
@@ -48,8 +46,12 @@ export default function Reveal() {
     const size = () => { const dpr = Math.min(devicePixelRatio || 1, 1.5); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
     size();
     const prep = async () => {
-      const box = Math.min(innerHeight * .62, innerWidth * .8), ox = (innerWidth - box) / 2, oy = innerHeight * .08;
-      const pts = await markPoints($('.rv-src svg'), Math.round(box), Math.round(box));
+      // three portraits side by side, standing behind the word like the reel's single portrait
+      // (portrait screens: fill the width and stand just above the word)
+      const tall = innerWidth < innerHeight, weak = (navigator.hardwareConcurrency || 4) < 8;
+      const ph = tall ? innerWidth * .32 / .875 : Math.min(innerHeight * .56, innerWidth * .36), pw = Math.round(ph * .875);
+      const ox = (innerWidth - pw * 3) / 2, oy = tall ? innerHeight * .64 - ph : innerHeight * .1;
+      const pts = await portraitPoints(pw, Math.round(ph), weak && !tall ? 3 : 2);
       const n = pts.length / 3, P = { n, tx: new Float32Array(n), ty: new Float32Array(n), sx: new Float32Array(n), sy: new Float32Array(n), d: new Float32Array(n), l: new Float32Array(n) };
       for (let i = 0; i < n; i++) {
         P.tx[i] = ox + pts[i * 3]; P.ty[i] = oy + pts[i * 3 + 1]; P.l[i] = pts[i * 3 + 2];
@@ -69,7 +71,7 @@ export default function Reveal() {
         const x = P.sx[i] + (P.tx[i] - P.sx[i]) * e + Math.sin(time * 1.3 + i) * j;
         const y = P.sy[i] + (P.ty[i] - P.sy[i]) * e + Math.cos(time * 1.1 + i * 1.7) * j;
         cx.fillStyle = `rgba(${200 + P.l[i] * 55 | 0},${208 + P.l[i] * 47 | 0},255,${(dust.a * (.25 + .75 * e) * (.45 + P.l[i] * .55)).toFixed(3)})`;
-        cx.fillRect(x, y, 1.3, 1.3);
+        cx.fillRect(x, y, 1.2, 1.2);
       }
     };
 
@@ -141,7 +143,6 @@ export default function Reveal() {
           <div className="rv-sub">Ledger Hackers <em>· paperwork that files itself</em></div>
         </div>
       </div>
-      <div className="rv-src" hidden><HackerMark size={400} ring={false} title="" /></div>
       <button className="rv-skip" tabIndex={-1}>Skip</button>
       <style>{`
         .rv{position:fixed;inset:0;z-index:99;background:#050506;overflow:hidden;visibility:visible}
