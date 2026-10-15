@@ -16,7 +16,10 @@ export default function Core({ hq, still }) {
     m.rotation.x = Math.sin(t * .27) * .12 - story.pointer.y * .18;
     const reading = ease(seg(p, .2, .3)) * (1 - ease(seg(p, .37, .44)));
     m.position.z = damp(m.position.z, -reading * 1.4, 6, dt);
-    m.scale.setScalar(1 + .035 * Math.sin(t * 1.3) + .08 * story.pulse);
+    // hidden behind the hero's card spiral; an invisible material also skips the costly refraction pass
+    const appear = ease(seg(p, .01, .04));
+    m.material.visible = appear > .01;
+    m.scale.setScalar((1 + .035 * Math.sin(t * 1.3) + .08 * story.pulse) * Math.max(appear, .0001));
     story.pulse = damp(story.pulse, 0, 4, dt);
   });
   return (

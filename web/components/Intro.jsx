@@ -16,19 +16,22 @@ const TEAM = ['Chetanya Kaushal', 'Jay Teli', 'Tanuj Maniyar'];
 // Matrix-style rain, but made of ledger entries: amounts, ₹, DR/CR and tax codes
 function startRain(canvas) {
   const ctx = canvas.getContext('2d');
-  const dpr = Math.min(devicePixelRatio || 1, 1.5);
+  const dpr = 1; // rain is soft by design; full-res costs fill-rate on weak GPUs
   const W = canvas.width = innerWidth * dpr, H = canvas.height = innerHeight * dpr;
   const fs = 14 * dpr, cols = Math.ceil(W / (fs * 1.15));
   const ys = Array.from({ length: cols }, () => Math.random() * -H);
   const speed = Array.from({ length: cols }, () => (.6 + Math.random() * .9) * fs);
   ctx.font = `500 ${fs}px ui-monospace, "SF Mono", Menlo, monospace`;
   let raf, last = 0;
+  let acc = 0;
   const draw = t => {
     raf = requestAnimationFrame(draw);
-    if (t - last < 33) return; // ~30 fps is plenty for rain
-    last = t;
-    ctx.fillStyle = 'rgba(5,6,10,.16)';
+    // steady time-based fall every frame (a 30 fps cap judders on 60/120 Hz screens); glyphs change ~30x/s
+    const dt = Math.min(.05, last ? (t - last) / 1000 : 0); last = t; acc += dt;
+    const tick = acc >= 1 / 30; if (tick) acc = 0;
+    ctx.fillStyle = `rgba(5,6,10,${tick ? .16 : .08})`;
     ctx.fillRect(0, 0, W, H);
+    if (!tick) return;
     for (let i = 0; i < cols; i++) {
       const tok = Math.random() < .035;
       const ch = tok ? TOKENS[(Math.random() * TOKENS.length) | 0] : LEDGER_CHARS[(Math.random() * LEDGER_CHARS.length) | 0];
@@ -138,14 +141,15 @@ export default function Intro() {
       <div className="intro-scan" aria-hidden="true" />
       <button className="intro-skip" autoFocus>Skip intro</button>
       <style>{`
-        .intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#05060a;clip-path:circle(150% at 50% 50%);overflow:hidden}
+        .intro{position:fixed;inset:0;z-index:100;will-change:clip-path;contain:strict;display:grid;place-items:center;background:#05060a;clip-path:circle(150% at 50% 50%);overflow:hidden}
         .no-intro .intro{display:none}
         .intro-rain{position:absolute;inset:0;width:100%;height:100%;opacity:0}
         .intro-traces{position:absolute;inset:0;width:100%;height:100%}
-        .trace{fill:none;stroke:#3a7bff;stroke-width:1.6;opacity:.75;filter:drop-shadow(0 0 4px #3a7bff)}
+        .trace{fill:none;stroke:#5a90ff;stroke-width:1.8;opacity:.8}
         .node{fill:#7fd8ff}
         .intro-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:26px;padding:0 16px;text-align:center}
-        .intro-mark{width:min(260px,58vw);height:auto;filter:drop-shadow(0 0 40px rgba(58,123,255,.55))}
+        .intro-mark{width:min(260px,58vw);height:auto}
+        .intro-stage::before{content:"";position:absolute;left:50%;top:0;width:min(420px,90vw);aspect-ratio:1;transform:translate(-50%,-18%);background:radial-gradient(closest-side,rgba(58,123,255,.4),transparent);pointer-events:none;z-index:-1}
         .intro-title{font-family:var(--mono);font-weight:700;font-size:clamp(1.9rem,7vw,4.4rem);letter-spacing:.14em;line-height:1;white-space:nowrap;
           text-shadow:-2px 0 #ff3ea5,2px 0 #3ee8ff,0 0 24px rgba(58,123,255,.6)}
         .intro-ledger{font-family:var(--mono);font-size:clamp(.72rem,2.4vw,.95rem);letter-spacing:.06em;color:#7fd8ff;min-height:1.4em}
@@ -154,13 +158,12 @@ export default function Intro() {
         .intro-team ul{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 12px}
         .intro-name{font-family:var(--mono);font-weight:600;font-size:clamp(.78rem,2.6vw,1rem);letter-spacing:.12em;white-space:nowrap;
           padding:6px 12px;border-radius:999px;color:#e9f7ff;background:rgba(58,123,255,.12);box-shadow:inset 0 0 0 1px rgba(127,216,255,.35),0 0 18px rgba(58,123,255,.25)}
-        .intro-scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+        .intro-scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
         .intro-skip{position:absolute;right:20px;bottom:20px;height:40px;padding:0 18px;border-radius:999px;font-size:13px;color:var(--fg-2);
           background:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(255,255,255,.08)}
         .intro-skip:hover{color:var(--fg)}
         .is-glitch .intro-mark{animation:glitch .18s steps(2) infinite}
         .is-glitch .intro-title{animation:glitch .22s steps(2) infinite reverse}
-        .is-burst .intro-stage{filter:url(#liquid)}
         @keyframes glitch{
           0%{clip-path:inset(0 0 62% 0);transform:translate(-6px,0)}
           25%{clip-path:inset(38% 0 30% 0);transform:translate(7px,0)}

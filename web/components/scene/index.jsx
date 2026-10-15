@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { introDone } from '@/lib/intro';
 import { Canvas } from '@react-three/fiber';
 import { Environment, Lightformer, PerformanceMonitor } from '@react-three/drei';
 import { story } from '@/lib/store';
@@ -15,9 +16,15 @@ import Rig from './Rig';
 export default function Scene({ active }) {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wide = innerWidth >= 900;
-  // Quality steps down if the device can't hold the frame rate: sharpness first, then the refractive glass
-  const [dpr, setDpr] = useState(wide ? 1.75 : 1.4);
-  const [hq, setHq] = useState(wide && !reduce && (navigator.hardwareConcurrency || 4) >= 4);
+  // Quality steps down if the device can't hold the frame rate: sharpness first, then the refractive glass.
+  // Start modest on weak machines (few cores / little memory) so they never begin in a stutter.
+  const strong = (navigator.hardwareConcurrency || 4) >= 8 && (navigator.deviceMemory || 8) >= 8;
+  const [dpr, setDpr] = useState(Math.min(devicePixelRatio || 1, strong ? (wide ? 1.75 : 1.5) : 1.25));
+  const [hq, setHq] = useState(wide && !reduce && strong);
+  // While the intro plays, render once (compiles shaders off the critical moment) and then hold still,
+  // so the intro has the main thread and GPU to itself
+  const [intro, setIntro] = useState(true);
+  useEffect(() => { introDone.then(() => setIntro(false)); }, []);
   story.pulse ??= 0;
 
   useEffect(() => {
@@ -27,7 +34,7 @@ export default function Scene({ active }) {
   }, []);
 
   return (
-    <Canvas dpr={dpr} frameloop={active ? 'always' : 'never'} camera={{ fov: 35, position: [0, 0, 12.5] }}
+    <Canvas dpr={dpr} frameloop={intro ? 'demand' : active ? 'always' : 'never'} camera={{ fov: 35, position: [0, 0, 12.5] }}
       gl={{ antialias: dpr < 1.5, powerPreference: 'high-performance', stencil: false }} aria-hidden="true">
       <PerformanceMonitor flipflops={3}
         onDecline={() => (dpr > 1 ? setDpr(1) : setHq(false))}

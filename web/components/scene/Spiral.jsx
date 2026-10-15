@@ -7,7 +7,8 @@ import { seg, ease } from './shared';
 
 // ─── hero: a helix of curved editorial cards turning around the core ─────
 // Each card is an arc of a cylinder, so it bends with the spiral like a ribbon of prints.
-const R = 2.75, COUNT = 40, STEP = .45, RISE = .095; // ~14 cards per turn, cards almost touching
+// ~14.5 cards per turn, cards almost touching; tall enough to run past the top and bottom of the screen
+const R = 2.75, CW = 1.12, CH = .82, STEP = (CW + .07) / R, RISE = .085, COUNT = 132, SPEED = .55;
 
 const RED = '#e8321f', BLUE = '#4b5cf2', CREAM = '#ecebe4', INK = '#0e0e10', GREY = '#9a9ca3';
 const TILES = [
@@ -25,7 +26,7 @@ const TILES = [
   { bg: '#f0613a', draw: (g, w, h) => { big(g, 'TDS', w * .08, h * .62, h * .36, INK); small(g, 'FORM 16 · 02', w * .08, h * .86, INK); } },
 ];
 function big(g, s, x, y, size, c) { g.fillStyle = c; g.font = `500 ${size}px "Inter", "Helvetica Neue", Arial, sans-serif`; g.fillText(s, x, y); }
-function small(g, s, x, y, c) { g.fillStyle = c; g.globalAlpha = .75; g.font = '500 22px ui-monospace, Menlo, monospace'; g.fillText(s, x, y); g.globalAlpha = 1; }
+function small(g, s, x, y, c) { g.fillStyle = c; g.globalAlpha = .75; g.font = '500 33px ui-monospace, Menlo, monospace'; g.fillText(s, x, y); g.globalAlpha = 1; }
 function dot(g, x, y, r, c, inner) {
   g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
   if (inner) { g.fillStyle = inner; g.beginPath(); g.arc(x, y, r, Math.PI, 0); g.fill(); }
@@ -44,43 +45,54 @@ function metal(g, w, h) {
   g.fillStyle = '#e9eaee'; g.beginPath(); g.arc(w * .5, h * .38, h * .1, 0, 7); g.fill();
 }
 function tileTexture(t, aspect) {
-  const h = 256, w = Math.round(h * aspect), c = document.createElement('canvas'); c.width = w; c.height = h;
+  const h = 384, w = Math.round(h * aspect), c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.fillStyle = t.bg; g.fillRect(0, 0, w, h); g.textBaseline = 'alphabetic'; t.draw(g, w, h);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
   return tex;
 }
 
 export default function Spiral({ still }) {
-  const g = useRef();
-  // backs face inward: plain dark, so the far side of the ribbon reads as the reverse of a print
-  const back = useMemo(() => new THREE.MeshStandardMaterial({ color: '#16171c', roughness: .7, side: THREE.BackSide, transparent: true }), []);
-  const cards = useMemo(() => Array.from({ length: COUNT }, (_, i) => {
-    const w = .95 + ((i * 37) % 5) / 12, h = .66 + ((i * 53) % 4) / 12;
-    const tex = tileTexture(TILES[i % TILES.length], w / h);
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: .55, metalness: .05, transparent: true });
-    // arc centred on +z, so rotation.y alone places it on the helix
-    const geo = new THREE.CylinderGeometry(R, R, h, 24, 1, true, -w / R / 2, w / R);
-    return { geo, mat, a: i * STEP, y: (i - COUNT / 2) * RISE };
-  }), []);
+  const g = useRef(), fronts = useRef([]), back = useRef();
+  const { geo, mats, backMat } = useMemo(() => {
+    // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
+    const geo = new THREE.CylinderGeometry(R, R, CH, 20, 1, true, -CW / R / 2, CW / R);
+    const mats = TILES.map(t => new THREE.MeshStandardMaterial({ map: tileTexture(t, CW / CH), roughness: .55, metalness: .05, transparent: true }));
+    // backs face inward: plain dark, the reverse of a print
+    const backMat = new THREE.MeshStandardMaterial({ color: '#16171c', roughness: .7, side: THREE.BackSide, transparent: true });
+    return { geo, mats, backMat };
+  }, []);
+  const tmp = useMemo(() => new THREE.Object3D(), []);
 
   useFrame((state, dt) => {
     const t = still ? 0 : state.clock.elapsedTime, p = story.p;
     const out = ease(seg(p, 0, .035)); // scroll starts: the ribbon widens and dissolves, the papers take over
     g.current.visible = out < 1;
     if (!g.current.visible) return;
-    g.current.rotation.y = t * .22 + p * 6;
-    g.current.rotation.z = -.08;
     g.current.scale.set(1 + out * .6, 1 + out * .25, 1 + out * .6);
-    cards.forEach(c => (c.mat.opacity = 1 - out)); back.opacity = 1 - out;
+    mats.forEach(m => (m.opacity = 1 - out)); backMat.opacity = 1 - out;
+    // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
+    // portrait phones: the headline fills the lower half, so the ribbon starts above it
+    const lo = state.size.width / state.size.height < .8 ? COUNT * .4 : 0;
+    for (let i = 0; i < COUNT; i++) {
+      const s = (i + t * SPEED) % COUNT;
+      const edge = Math.max(0, Math.min(1, (s - lo) / 8, (COUNT - s) / 8)); // grow in at the bottom, shrink out at the top
+      tmp.position.set(0, (s - COUNT / 2) * RISE, 0);
+      tmp.rotation.set(0, s * STEP + p * 6, 0);
+      tmp.scale.setScalar(Math.max(ease(edge), .0001));
+      tmp.updateMatrix();
+      fronts.current[i % TILES.length].setMatrixAt((i / TILES.length) | 0, tmp.matrix);
+      back.current.setMatrixAt(i, tmp.matrix);
+    }
+    fronts.current.forEach(m => (m.instanceMatrix.needsUpdate = true));
+    back.current.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <group ref={g} position={[0, -1.6, 0]}>
-      {cards.map((c, i) => (
-        <group key={i} position-y={c.y} rotation-y={c.a}>
-          <mesh geometry={c.geo} material={c.mat} /><mesh geometry={c.geo} material={back} />
-        </group>
+    <group ref={g} position={[0, -1.7, 0]} rotation={[0, 0, -.06]}>
+      {mats.map((m, k) => (
+        <instancedMesh key={k} ref={el => (fronts.current[k] = el)} args={[geo, m, Math.ceil((COUNT - k) / TILES.length)]} frustumCulled={false} />
       ))}
+      <instancedMesh ref={back} args={[geo, backMat, COUNT]} frustumCulled={false} />
     </group>
   );
 }
