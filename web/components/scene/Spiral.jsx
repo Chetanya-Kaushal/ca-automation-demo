@@ -7,7 +7,7 @@ import { introDone } from '@/lib/intro';
 
 let introOver = false;
 if (typeof window !== 'undefined') introDone.then(() => (introOver = true));
-import { seg, ease, damp } from './shared';
+import { seg, ease, damp, sea } from './shared';
 
 // ─── hero: a helix of curved editorial cards turning around the core ─────
 // Each card is an arc of a cylinder, so it bends with the spiral like a ribbon of prints.
@@ -99,13 +99,23 @@ export default function Spiral({ still }) {
     g.current.position.y = -1.7 - (1 - rise) * 7;
     mats.forEach(m => (m.opacity = 1 - out));
     // portrait phones: the headline fills the lower half, so the ribbon starts above it
-    const lo = state.size.width / state.size.height < .8 ? COUNT * .3 : 0;
+    const aspect = state.size.width / state.size.height, lo = aspect < .8 ? COUNT * .3 : 0;
+    // turn the helix so the point where it breaks the surface faces the camera (the helix meets a level plane once)
+    const { W } = sea(aspect), gy = -1.7, sCross = (W - gy) / RISE + COUNT / 2;
+    const front = Math.atan2(state.camera.position.x + .5, state.camera.position.z - 1.1);
+    const phase = front - sCross * STEP;
+    // report every card cutting the waterline (angle span on the ring) so the water can splash and ripple there
+    const wet = story.wet || (story.wet = []); wet.length = 0;
+    story.rising = out < 1 ? (1 - rise) : 0;
     // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
     for (let i = 0; i < COUNT; i++) {
       const s = (i + t * SPEED) % COUNT;
       const edge = Math.max(0, Math.min(1, (s - lo) / 1.5, (COUNT - s) / 1.5));
-      tmp.position.set(0, (s - COUNT / 2) * RISE, 0);
-      tmp.rotation.set(0, s * STEP + p * 6, SLOPE);
+      const ang = s * STEP + phase + p * 6, y = (s - COUNT / 2) * RISE;
+      tmp.position.set(0, y, 0);
+      tmp.rotation.set(0, ang, SLOPE);
+      const k0 = i % TILES.length, hh = SIZES[k0][1] / 2 * ease(edge), wy = g.current.position.y + y;
+      if (out < .9 && Math.abs(wy - W) < hh) wet.push(ang, SIZES[k0][0] / R / 2, 1 - Math.abs(wy - W) / hh);
       tmp.scale.setScalar(Math.max(ease(edge), .0001));
       tmp.updateMatrix();
       const k = i % TILES.length, j = (i / TILES.length) | 0;
