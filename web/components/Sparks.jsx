@@ -9,7 +9,9 @@ const SLIDES = [
 ];
 // Beat timings (seconds into a slide)
 const REVEAL = 0, BOLT = 3.0, BOLT_END = 4.0, FOUNTAIN = 4.0, FORM = 4.5, RELEASE = 6.6, NEXT = 7.4;
-const MAX = 40000;
+// weak machines (few cores / little memory) get fewer, slightly larger particles so the sequence never stutters
+const WEAK = typeof navigator !== 'undefined' && ((navigator.hardwareConcurrency || 4) < 8 || (navigator.deviceMemory || 8) < 8);
+const MAX = WEAK ? 16000 : 40000;
 // Swirling flow field: every particle is advected by it, so sparks curl like a plume instead of flying straight
 const flow = (x, y, t) => Math.sin(x * .006 + t * .6) * 2.1 + Math.cos(y * .008 - t * .45) * 1.7 + Math.sin((x + y) * .003 + t * .3);
 
@@ -45,7 +47,7 @@ export default function Sparks() {
       const bfs = Math.max(48, Math.min(150, W * (s.burst.length > 8 ? .085 : .12)));
       words.forEach(o => (o.wd = ctx.measureText(o.w).width));
       return { fs, words, top: H * .42 - fs, bottom: y + fs * .3, x0, x1: x0 + maxW,
-        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(1, bfs / 95)) };
+        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(1, bfs / (WEAK ? 60 : 95))) };
     };
     const sample = (items, f, step) => {
       const o = document.createElement('canvas'); o.width = W; o.height = H;
@@ -57,7 +59,7 @@ export default function Sparks() {
     };
 
     const resize = () => {
-      dpr = Math.min(devicePixelRatio || 1, 2); W = c.clientWidth; H = c.clientHeight; // dpr 2: the dust is sub-pixel fine
+      dpr = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2); W = c.clientWidth; H = c.clientHeight; // dpr 2: the dust is sub-pixel fine
       c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (slide >= 0) L = layout(SLIDES[slide]);
     };

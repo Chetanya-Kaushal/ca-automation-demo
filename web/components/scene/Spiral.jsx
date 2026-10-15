@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { story } from '@/lib/store';
-import { seg, ease } from './shared';
+import { seg, ease, damp } from './shared';
 
 // ─── hero: a helix of curved editorial cards turning around the core ─────
 // Each card is an arc of a cylinder, so it bends with the spiral like a ribbon of prints.
@@ -79,9 +79,12 @@ export default function Spiral({ still }) {
     return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
   }, []);
   const tmp = useMemo(() => { const o = new THREE.Object3D(); o.rotation.order = 'YZX'; return o; }, []);
+  const sp = useRef(0);
 
-  useFrame((state) => {
-    const t = still ? 0 : state.clock.elapsedTime, p = story.p;
+  useFrame((state, dt) => {
+    // follow a damped copy of the scroll: phones scroll natively in steps, so raw progress would make the ribbon jump
+    sp.current = damp(sp.current, story.p, 8, Math.min(dt, .05));
+    const t = still ? 0 : state.clock.elapsedTime, p = sp.current;
     const out = ease(seg(p, 0, .035)); // scroll starts: the ribbon widens and dissolves, the papers take over
     g.current.visible = out < 1;
     if (!g.current.visible) return;

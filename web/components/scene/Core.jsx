@@ -8,7 +8,7 @@ import { seg, ease, damp } from './shared';
 
 // ─── the liquid glass core ────────────────────────────────────────────────
 export default function Core({ hq, still }) {
-  const ref = useRef();
+  const ref = useRef(), warm = useRef(0);
   const geo = useMemo(() => new RoundedBoxGeometry(2.5, 2.5, 0.95, 10, 0.6), []);
   useFrame((state, dt) => {
     const t = still ? 0 : state.clock.elapsedTime, p = story.p, m = ref.current;
@@ -18,7 +18,7 @@ export default function Core({ hq, still }) {
     m.position.z = damp(m.position.z, -reading * 1.4, 6, dt);
     // hidden behind the hero's card spiral; an invisible material also skips the costly refraction pass
     const appear = ease(seg(p, .01, .04));
-    m.material.visible = appear > .01;
+    m.material.visible = appear > .01 || warm.current++ < 3; // shown for the first frames so its shader compiles during the intro, not mid-scroll
     m.scale.setScalar((1 + .035 * Math.sin(t * 1.3) + .08 * story.pulse) * Math.max(appear, .0001));
     story.pulse = damp(story.pulse, 0, 4, dt);
   });
