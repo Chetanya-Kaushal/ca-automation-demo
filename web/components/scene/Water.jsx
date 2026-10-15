@@ -76,15 +76,19 @@ function foamTexture() {
 // spray: droplets (fall, ripple on landing) and mist (drifts, fades)
 const MAXP = 2600;
 const P_VERT = `
-attribute float aSize; attribute float aAlpha; uniform float scale; varying float vA;
-void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.); gl_PointSize = aSize * scale / -mv.z; vA = aAlpha; gl_Position = projectionMatrix * mv; }`;
+attribute float aSize; attribute float aAlpha; attribute float aSoft; uniform float scale; varying float vA; varying float vS;
+void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.); gl_PointSize = aSize * scale / -mv.z; vA = aAlpha; vS = aSoft; gl_Position = projectionMatrix * mv; }`;
 const P_FRAG = `
-varying float vA;
+varying float vA; varying float vS;
 void main(){
   vec2 c = gl_PointCoord - .5; float d = length(c);
   if (d > .5) discard;
+  if (vS > .5) { // whitewater / spray cloud: soft, lumpy billow
+    float lump = .78 + .22 * sin(c.x * 19. + vS * 7.) * sin(c.y * 17. - vS * 5.);
+    gl_FragColor = vec4(vec3(.9, .92, .95), exp(-d * d * 14.) * lump * vA); return;
+  }
   float body = smoothstep(.5, .15, d), glint = smoothstep(.22, 0., length(c - vec2(-.13, -.15)));
-  gl_FragColor = vec4(mix(vec3(.62, .7, .84), vec3(1.), glint), body * vA);
+  gl_FragColor = vec4(mix(vec3(.66, .69, .74), vec3(1.), glint), body * vA);
 }`;
 
 export default function Water({ hq, still }) {
@@ -113,16 +117,35 @@ export default function Water({ hq, still }) {
   const fade = useMemo(() => fadeTexture(zc), [zc]), foam = useMemo(foamTexture, []);
   const P = useMemo(() => {
     const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(MAXP * 3), sz = new Float32Array(MAXP), al = new Float32Array(MAXP);
+    const pos = new Float32Array(MAXP * 3), sz = new Float32Array(MAXP), al = new Float32Array(MAXP), so = new Float32Array(MAXP);
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('aSize', new THREE.BufferAttribute(sz, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute('aAlpha', new THREE.BufferAttribute(al, 1).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('aSoft', new THREE.BufferAttribute(so, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setDrawRange(0, 0);
     const mat = new THREE.ShaderMaterial({ vertexShader: P_VERT, fragmentShader: P_FRAG, uniforms: { scale: { value: 1 } }, transparent: true, depthWrite: false });
-    return { geo, mat, pos, sz, al, vel: new Float32Array(MAXP * 3), life: new Float32Array(MAXP), max: new Float32Array(MAXP), base: new Float32Array(MAXP), kind: new Uint8Array(MAXP), n: 0 };
+    return { geo, mat, pos, sz, al, so, seed: new Float32Array(MAXP), vel: new Float32Array(MAXP * 3), life: new Float32Array(MAXP), max: new Float32Array(MAXP), base: new Float32Array(MAXP), kind: new Uint8Array(MAXP), n: 0 };
   }, []);
   const tools = useMemo(() => ({ ray: new THREE.Raycaster(), plane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), v: new THREE.Vector3(), ndc: new THREE.Vector2() }), []);
-  const g = useRef(), ring = useRef();
+  const g = useRef(), ring = useRef(), clock = useMemo(() => ({ value: 0 }), []);
+  // the recording's reflection is chopped into thin horizontal bands that slide sideways, and the water is grey:
+  // offset the reflection only in x, per screen band, driven by time and the simulated slope; desaturate it
+  const patch = useMemo(() => mat => {
+    if (!mat || mat.userData.patched) return;
+    const orig = mat.onBeforeCompile.bind(mat);
+    mat.onBeforeCompile = (shader, r) => {
+      orig(shader, r);
+      shader.uniforms.uClock = clock;
+      shader.fragmentShader = 'uniform float uClock;\n' + shader.fragmentShader
+        .replace(/new_vUv\.x \+= distortionFactor;\s*new_vUv\.y \+= distortionFactor;/, `
+        float band = floor(gl_FragCoord.y / 3.);
+        float wob = sin(band * 1.71 + uClock * 2.3) * .55 + sin(band * .37 - uClock * 1.15) * .45 + sin(band * 5.3 + uClock * 4.) * .2;
+        new_vUv.x += (wob * .016 + (distortionFactor - distortion * .5) * 2.4) * new_vUv.w;`)
+        .replace('newMerge.b = (merge.b - 0.5) * mixContrast + 0.5;', `newMerge.b = (merge.b - 0.5) * mixContrast + 0.5;
+        newMerge.rgb = mix(newMerge.rgb, vec3(dot(newMerge.rgb, vec3(.299, .587, .114))), .82);`);
+    };
+    mat.userData.patched = true; mat.needsUpdate = true;
+  }, [clock]);
 
   useFrame((state, rawDt) => {
     const hero = story.p < .05;
@@ -134,20 +157,23 @@ export default function Water({ hq, still }) {
     const drop = (x, z, r, s) => { if (sim.queue.length < 96) sim.queue.push([(x - cx) / SEA + .5, .5 - (z - zc) / SEA], r, s); };
 
     // ── spray
-    const emit = (x, y, z, vx, vy, vz, kind) => {
+    const emit = (x, y, z, vx, vy, vz, kind, sc = 1) => {
       const i = P.n < MAXP ? P.n++ : (Math.random() * MAXP) | 0, i3 = i * 3;
       P.pos[i3] = x; P.pos[i3 + 1] = y; P.pos[i3 + 2] = z;
       P.vel[i3] = vx; P.vel[i3 + 1] = vy; P.vel[i3 + 2] = vz;
-      P.kind[i] = kind; P.max[i] = P.life[i] = kind ? .9 + Math.random() * .8 : 1.6 + Math.random();
-      P.base[i] = kind ? .25 + Math.random() * .45 : .022 + Math.random() * .05;
+      P.kind[i] = kind; P.seed[i] = 1 + Math.random() * 9;
+      P.max[i] = P.life[i] = kind === 2 ? 1.2 + Math.random() * 1.2 : kind ? 1 + Math.random() * .9 : 1.6 + Math.random();
+      P.base[i] = (kind === 2 ? .35 + Math.random() * .5 : kind ? .45 + Math.random() * .8 : .022 + Math.random() * .05) * sc;
     };
-    const splash = (x, z, nx, nz, k, n) => { // a burst at a point on the surface, thrown along (nx, nz)
+    // a burst at a point on the surface, thrown along (nx, nz); near = close to the camera (the copy), so smaller and lighter
+    const splash = (x, z, nx, nz, k, n, near = 0) => {
       for (let j = 0; j < n; j++) {
         const up = (1.4 + Math.random() * 2.6) * (.6 + k * .6), out = (.2 + Math.random() * 1.1) * (.5 + k * .5);
         emit(x + (Math.random() - .5) * .12, gy + .02, z + (Math.random() - .5) * .12,
-          nx * out + (Math.random() - .5) * .8, up, nz * out + (Math.random() - .5) * .8, 0);
+          nx * out + (Math.random() - .5) * .8, up * (near ? .6 : 1), nz * out + (Math.random() - .5) * .8, 0, near ? .6 : 1);
       }
-      if (Math.random() < .35 * k + .1) emit(x, gy + .05, z, nx * .3, .5 + Math.random() * .5, nz * .3, 1);
+      if (Math.random() < (.45 * k + .15) * (near ? .18 : 1)) emit(x, gy + .08, z, nx * .4, (.7 + Math.random() * .9 * k) * (near ? .5 : 1), nz * .4, 1, near ? .35 : 1);
+      if (Math.random() < (near ? .35 : .8)) emit(x + (Math.random() - .5) * .3, gy + .03, z + (Math.random() - .5) * .3, nx * .25, 0, nz * .25, 2, near ? .3 : 1);
     };
 
     if (!still) {
@@ -173,14 +199,14 @@ export default function Water({ hq, still }) {
       if (wl && wl.segs.length) for (const [x0, x1] of wl.segs) {
         if (Math.random() > dt * 60 * wl.k * Math.min(2, (x1 - x0) / 250)) continue;
         const p = hit(x0 + Math.random() * (x1 - x0), wl.y); if (!p) continue;
-        splash(p.x, p.z, (Math.random() - .5) * .6, .7, Math.min(1.4, wl.k), 3);
+        splash(p.x, p.z, (Math.random() - .5) * .6, .7, Math.min(1.4, wl.k), 3, 1);
         if (Math.random() < .6) drop(p.x, p.z, .01, .05 * Math.min(2, wl.k));
       }
       const ev = story.splashes || [];
       while (ev.length) {
         const e = ev.shift(), c = hit(e.x, e.y); if (!c) continue;
         const px = c.x, pz = c.z, w = e.w ? hit(e.x + e.w / 2, e.y) : null, span = w ? Math.abs(w.x - px) : .3;
-        for (let j = 0; j < 10; j++) { const ox = (Math.random() * 2 - 1) * span; splash(px + ox, pz, ox * .3, .8, e.k, 3); }
+        for (let j = 0; j < 8; j++) { const ox = (Math.random() * 2 - 1) * span; splash(px + ox, pz, ox * .3, .8, e.k, 3, 1); }
         drop(px, pz, .03, .12 * e.k); drop(px - span * .6, pz, .02, .06 * e.k); drop(px + span * .6, pz, .02, .06 * e.k);
       }
     }
@@ -190,23 +216,25 @@ export default function Water({ hq, still }) {
     for (let i = 0; i < P.n; i++) {
       const k = P.kind[i], i3 = i * 3;
       P.life[i] -= dt;
-      if (k) { P.vel[i3 + 1] -= .4 * dt; P.vel[i3] *= .97; P.vel[i3 + 2] *= .97; } else P.vel[i3 + 1] -= 9.8 * dt;
+      if (k === 2) { P.vel[i3] *= .95; P.vel[i3 + 2] *= .95; P.vel[i3 + 1] = (gy + .03 - P.pos[i3 + 1]) * 4; }
+      else if (k) { P.vel[i3 + 1] -= .5 * dt; P.vel[i3] *= .97; P.vel[i3 + 2] *= .97; } else P.vel[i3 + 1] -= 9.8 * dt;
       P.pos[i3] += P.vel[i3] * dt; P.pos[i3 + 1] += P.vel[i3 + 1] * dt; P.pos[i3 + 2] += P.vel[i3 + 2] * dt;
       if (!k && P.pos[i3 + 1] < gy && P.vel[i3 + 1] < 0) { if (Math.random() < .25) drop(P.pos[i3], P.pos[i3 + 2], .006, .012); continue; }
       if (P.life[i] <= 0) continue;
       const f = P.life[i] / P.max[i], a3 = alive * 3;
-      P.sz[alive] = P.base[i] * (k ? 1 + (1 - f) * 1.5 : 1);
-      P.al[alive] = k ? f * .11 : Math.min(1, f * 3) * .85;
+      P.sz[alive] = P.base[i] * (k ? 1 + (1 - f) * (k === 2 ? .8 : 1.6) : 1);
+      P.al[alive] = k === 2 ? Math.min(1, (1 - f) * 6) * f * .55 : k ? f * .2 : Math.min(1, f * 3) * .85;
+      P.so[alive] = k ? P.seed[i] : 0;
       if (alive !== i) {
         P.pos[a3] = P.pos[i3]; P.pos[a3 + 1] = P.pos[i3 + 1]; P.pos[a3 + 2] = P.pos[i3 + 2];
         P.vel[a3] = P.vel[i3]; P.vel[a3 + 1] = P.vel[i3 + 1]; P.vel[a3 + 2] = P.vel[i3 + 2];
-        P.life[alive] = P.life[i]; P.max[alive] = P.max[i]; P.base[alive] = P.base[i]; P.kind[alive] = k;
+        P.life[alive] = P.life[i]; P.max[alive] = P.max[i]; P.base[alive] = P.base[i]; P.kind[alive] = k; P.seed[alive] = P.seed[i];
       }
       alive++;
     }
     P.n = alive;
     P.geo.setDrawRange(0, alive);
-    P.geo.attributes.position.needsUpdate = P.geo.attributes.aSize.needsUpdate = P.geo.attributes.aAlpha.needsUpdate = true;
+    P.geo.attributes.position.needsUpdate = P.geo.attributes.aSize.needsUpdate = P.geo.attributes.aAlpha.needsUpdate = P.geo.attributes.aSoft.needsUpdate = true;
     P.mat.uniforms.scale.value = gl.domElement.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
 
     // ── ripple simulation: one wave step per frame, then shade into a normal map
@@ -223,6 +251,7 @@ export default function Water({ hq, still }) {
     gl.setRenderTarget(sim.shade); gl.render(sim.scene, sim.cam);
     gl.setRenderTarget(prev);
 
+    clock.value = still ? 0 : t;
     if (!still) ring.current.rotation.z += dt * .12;
     ring.current.material.opacity = .35 + .1 * Math.sin(t * 1.7) + (story.rising || 0) * .5;
   });
@@ -235,9 +264,9 @@ export default function Water({ hq, still }) {
           <planeGeometry args={[SEA, SEA]} />
           {/* drei multiplies the reflection by the base colour, so the base is pale and the darkness comes from what it
               reflects. The simulated normals both shade the surface and break the reflection into ripples. */}
-          <MeshReflectorMaterial resolution={hq ? 1024 : 256} mirror={1} mixBlur={hq ? .25 : 0} mixStrength={1.1} mixContrast={1.35}
+          <MeshReflectorMaterial ref={patch} resolution={hq ? 1024 : 256} mirror={1} mixBlur={hq ? .25 : 0} mixStrength={1.1} mixContrast={1.35}
             blur={hq ? [60, 12] : [0, 0]} distortion={.12} distortionMap={sim.shade.texture} depthScale={0}
-            normalMap={sim.shade.texture} normalScale={[1.4, 1.4]} color="#3b4252" metalness={.25} roughness={.32}
+            normalMap={sim.shade.texture} normalScale={[1.4, 1.4]} color="#4d5058" metalness={.25} roughness={.38}
             transparent alphaMap={fade} />
         </mesh>
         {/* foam where the ribbon meets the water (spiral axis sits at x -.5, z 1.1) */}
