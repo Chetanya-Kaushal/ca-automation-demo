@@ -59,7 +59,7 @@ export default function LaptopDemo() {
         .ld-stage{width:min(1500px,100vw);margin:0 auto}
         .ld-photo{position:relative;border-radius:clamp(0px,2vw,28px);overflow:hidden;box-shadow:0 40px 120px -40px rgba(0,0,0,.7)}
         .ld-photo img{display:block;width:100%;height:auto}
-        .ld-screen{position:absolute;left:17.71%;top:22.97%;width:64.35%;height:59.81%;overflow:hidden;background:#000}
+        .ld-screen{position:absolute;left:17.45%;top:22.6%;width:64.9%;height:60.5%;overflow:hidden;background:#000}
         .ld-glare{position:absolute;inset:0;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.12),rgba(255,255,255,.03) 32%,transparent 46%)}
         .ld-app{transform-origin:0 0}
         .ld-app iframe{width:100%;height:100%;border:0;background:#000}
