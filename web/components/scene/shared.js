@@ -13,11 +13,3 @@ export const FOLD = [[6.6, 2.25], [6.6, 0], [6.6, -2.25]];          // ITR, GST,
 export const PHONE = [-4.9, -.1, .8];
 export const TINTS = ['#7fb0ff', '#7ef0c8', '#ffcf7a'].map(c => new THREE.Color(c));
 export const N = 24;
-
-// ─── hero sea: one frame of reference shared by the water, the spiral and the DOM splashes ──
-// W: water level · cx, zc: centre of the 40×40 water sheet, kept under the hero camera on every aspect
-export const SEA = 40;
-export const sea = aspect => {
-  const camZ = 13 * Math.min(Math.max(1, 1.7 / aspect), 2.1);
-  return { W: aspect < .8 ? -3.3 : -3.95, cx: aspect > 1.2 ? -3.4 : 0, zc: camZ - 18 };
-};

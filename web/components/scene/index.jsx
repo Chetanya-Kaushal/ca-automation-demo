@@ -8,7 +8,6 @@ import Wallpaper from './Wallpaper';
 import Core from './Core';
 import Docs from './Docs';
 import Spiral from './Spiral';
-import Water from './Water';
 import Folders from './Folders';
 import Reminders from './Reminders';
 import Phone from './Phone';
@@ -52,7 +51,6 @@ export default function Scene({ active }) {
       <Wallpaper still={reduce} />
       <Core hq={hq} still={reduce} />
       <Spiral still={reduce} />
-      <Water hq={hq} still={reduce} />
       <Docs still={reduce} />
       <Folders />
       <Reminders still={reduce} />

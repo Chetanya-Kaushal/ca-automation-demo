@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { finishIntro } from '@/lib/intro';
+import { finishIntro, finishVideo } from '@/lib/intro';
 import { lenis } from '@/lib/smooth';
 import HackerMark from './HackerMark';
 
@@ -73,9 +73,7 @@ export default function Intro() {
 
     const done = contextSafe(() => {
       stopRain(); clearTimeout(stopScroll);
-      html.classList.remove('intro-on');
-      lenis?.start();
-      finishIntro();
+      finishVideo(); // the Reveal takes over (it unlocks scroll and starts the hero)
       setGone(true);
     });
 

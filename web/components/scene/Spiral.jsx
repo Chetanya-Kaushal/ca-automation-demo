@@ -3,17 +3,13 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { story } from '@/lib/store';
-import { introDone } from '@/lib/intro';
-
-let introOver = false;
-if (typeof window !== 'undefined') introDone.then(() => (introOver = true));
-import { seg, ease, damp, sea } from './shared';
+import { seg, ease, damp } from './shared';
 
 // ─── hero: a helix of curved editorial cards turning around the core ─────
 // Each card is an arc of a cylinder, so it bends with the spiral like a ribbon of prints.
 // Like the recording: ~7 big cards per turn and a tall pitch, so the ribbon makes about two turns
 // from the bottom of the screen to the top. Cards tilt with the slope of the helix.
-export const R = 2.6; const PITCH = 2.35, PER_TURN = 7, STEP = Math.PI * 2 / PER_TURN, RISE = PITCH / PER_TURN, COUNT = 35, SPEED = .32;
+const R = 2.6, PITCH = 2.35, PER_TURN = 7, STEP = Math.PI * 2 / PER_TURN, RISE = PITCH / PER_TURN, COUNT = 35, SPEED = .32;
 const SLOPE = Math.atan(RISE / (STEP * R));
 // per-tile card size [width along the arc, height]; widths stay under the arc spacing so neighbours never overlap
 const SIZES = [[1.95, 1.4], [1.7, 1.2], [2.05, 1.45], [1.6, 1.25], [1.45, 1.3], [1.35, 1.6], [1.75, 1.25], [1.8, 1.3], [1.9, 1.25], [1.7, 1.15], [1.6, 1.2], [1.85, 1.3]];
@@ -83,7 +79,7 @@ export default function Spiral({ still }) {
     return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
   }, []);
   const tmp = useMemo(() => { const o = new THREE.Object3D(); o.rotation.order = 'YZX'; return o; }, []);
-  const sp = useRef(0), born = useRef(null);
+  const sp = useRef(0);
 
   useFrame((state, dt) => {
     // follow a damped copy of the scroll: phones scroll natively in steps, so raw progress would make the ribbon jump
@@ -93,29 +89,15 @@ export default function Spiral({ still }) {
     g.current.visible = out < 1;
     if (!g.current.visible) return;
     g.current.scale.set(1 + out * .6, 1 + out * .25, 1 + out * .6);
-    // after the intro the whole ribbon surfaces from under the water, then keeps flowing up out of it
-    if (introOver && born.current === null) born.current = state.clock.elapsedTime;
-    const rise = still ? 1 : born.current === null ? 0 : ease(Math.min(1, (state.clock.elapsedTime - born.current) / 2.8));
-    g.current.position.y = -1.7 - (1 - rise) * 7;
     mats.forEach(m => (m.opacity = 1 - out));
     // portrait phones: the headline fills the lower half, so the ribbon starts above it
-    const aspect = state.size.width / state.size.height, lo = aspect < .8 ? COUNT * .3 : 0;
-    // turn the helix so the point where it breaks the surface faces the camera (the helix meets a level plane once)
-    const { W } = sea(aspect), gy = -1.7, sCross = (W - gy) / RISE + COUNT / 2;
-    const front = Math.atan2(state.camera.position.x + .5, state.camera.position.z - 1.1);
-    const phase = front - sCross * STEP;
-    // report every card cutting the waterline (angle span on the ring) so the water can splash and ripple there
-    const wet = story.wet || (story.wet = []); wet.length = 0;
-    story.rising = out < 1 ? (1 - rise) : 0;
+    const lo = state.size.width / state.size.height < .8 ? COUNT * .4 : 0;
     // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
     for (let i = 0; i < COUNT; i++) {
       const s = (i + t * SPEED) % COUNT;
       const edge = Math.max(0, Math.min(1, (s - lo) / 1.5, (COUNT - s) / 1.5));
-      const ang = s * STEP + phase + p * 6, y = (s - COUNT / 2) * RISE;
-      tmp.position.set(0, y, 0);
-      tmp.rotation.set(0, ang, SLOPE);
-      const k0 = i % TILES.length, hh = SIZES[k0][1] / 2 * ease(edge), wy = g.current.position.y + y;
-      if (out < .9 && Math.abs(wy - W) < hh) wet.push(ang, SIZES[k0][0] / R / 2, 1 - Math.abs(wy - W) / hh);
+      tmp.position.set(0, (s - COUNT / 2) * RISE, 0);
+      tmp.rotation.set(0, s * STEP + p * 6, SLOPE);
       tmp.scale.setScalar(Math.max(ease(edge), .0001));
       tmp.updateMatrix();
       const k = i % TILES.length, j = (i / TILES.length) | 0;
