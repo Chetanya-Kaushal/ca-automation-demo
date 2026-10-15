@@ -19,7 +19,6 @@ export default function SpiralHero() {
       <div className="sh-ui">
         <span className="sh-tl">Ledger Hackers ®</span>
         <span className="sh-plus" aria-hidden="true">+</span>
-        <span className="sh-tr">Archive — Nº 12</span>
         <button className="sh-arrow l" aria-label="Turn the spiral back" onClick={() => turn(-1)}><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" /></svg></button>
         <button className="sh-arrow r" aria-label="Turn the spiral forward" onClick={() => turn(1)}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
         <span className="sh-bl">FY 2026–27 · GST · ITR · TDS</span>

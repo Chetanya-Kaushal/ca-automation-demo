@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import HackerMark from './HackerMark';
-import Laptop from './Laptop';
+import TRACK from './deskTrack.json';
 
 gsap.registerPlugin(ScrambleTextPlugin);
 
@@ -88,8 +88,26 @@ export default function Film() {
       .to('.s8', { autoAlpha: 0, y: -20, duration: .6 }, 21.4)
       .fromTo('.cta', { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: .8 }, 21.6);
 
-    if (reduce) { tl.progress(1); return; }
+    // the screen text rides the real laptop screen: footage framed to the stage, screen rect looked up by video time
+    const vid = film.querySelector('.desk-vid'), scr = film.querySelector('.scr'), desk = film.querySelector('.desk');
+    let raf;
+    const place = () => {
+      raf = requestAnimationFrame(place);
+      const on = +getComputedStyle(desk).opacity > .01;
+      if (on && vid.paused) vid.play().catch(() => {}); else if (!on && !vid.paused) vid.pause();
+      if (!on) return;
+      const W = desk.clientWidth, H = desk.clientHeight, portrait = W < H;
+      const k = portrait ? W / (1920 * .5) : Math.max(W / 1920, H / 1080), dw = 1920 * k, dh = 1080 * k, ox = (W - dw) / 2, oy = (H - dh) / 2;
+      Object.assign(vid.style, { width: `${dw}px`, height: `${dh}px`, left: `${ox}px`, top: `${oy}px` });
+      const t = vid.currentTime, i = Math.min(TRACK.length - 2, Math.max(0, TRACK.findIndex(r => r[0] > t) - 1));
+      const [t0, ...a] = TRACK[i], [t1, ...b] = TRACK[i + 1], u = Math.min(1, Math.max(0, (t - t0) / (t1 - t0 || 1)));
+      const [x0, y0, x1, y1] = a.map((v, j) => v + (b[j] - v) * u);
+      Object.assign(scr.style, { left: `${ox + x0 * dw}px`, top: `${oy + y0 * dh}px`, width: `${(x1 - x0) * dw}px`, height: `${(y1 - y0) * dh}px` });
+    };
+    raf = requestAnimationFrame(place);
+    if (reduce) { tl.progress(1); return () => cancelAnimationFrame(raf); }
     ScrollTrigger.create({ trigger: film, start: 'top top', end: '+=1500%', pin: '.f-stage', scrub: .8, animation: tl, anticipatePin: 1 });
+    return () => cancelAnimationFrame(raf);
   }, { scope: root });
 
   return (
@@ -113,11 +131,10 @@ export default function Film() {
 
         {/* 2 */}
         <div className="scene desk" aria-hidden="true">
-          <div className="wall" /><div className="table" />
-          <div className="lamp"><i className="dome" /><i className="stem" /><i className="ball" /><i className="foot" /></div>
-          <div className="cup"><i /><i /><i /></div>
+          {/* real footage (Pexels #4884237, free licence): a laptop on a sunlit desk, the camera slowly pushing in */}
+          <video className="desk-vid" src="/media/desk.mp4" poster="/media/desk-poster.jpg" muted playsInline loop preload="auto" />
           <div className="ghost">Everything scattered</div>
-          <div className="laptop"><Laptop><div className="scr"><p>{words('Everything scattered?')}</p></div></Laptop></div>
+          <div className="scr"><p>{words('Everything scattered?')}</p></div>
         </div>
 
         {/* 3 */}
@@ -192,19 +209,10 @@ export default function Film() {
 
         /* 2 · the desk */
         .desk{visibility:hidden}
-        .wall{position:absolute;inset:0;background:radial-gradient(60% 50% at 70% 25%,#f5dcc0,transparent),linear-gradient(180deg,#e8c8a6,#d6ad85)}
-        .table{position:absolute;left:0;right:0;bottom:0;height:28%;background:linear-gradient(180deg,#c48a55,#9a6436 60%,#7d4f2a)}
-        .lamp{position:absolute;left:6%;bottom:28%;width:22vw;height:62vh}
-        .lamp .dome{position:absolute;left:0;top:0;width:100%;height:26%;border-radius:50% 50% 0 0/100% 100% 0 0;background:linear-gradient(180deg,#2a2a2a,#0f0f0f)}
-        .lamp .stem{position:absolute;left:48%;top:26%;width:4%;height:70%;background:#151515}
-        .lamp .ball{position:absolute;left:36%;top:38%;width:28%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#0b0b0b 70%)}
-        .lamp .foot{position:absolute;left:20%;bottom:0;width:60%;height:4%;border-radius:50%;background:#111}
-        .cup{position:absolute;right:9%;bottom:28%;width:5vw;height:9vh;border-radius:4px 4px 10px 10px;background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(255,255,255,.2))}
-        .cup i{position:absolute;bottom:80%;width:6%;height:9vh;background:#e8b04b;border-radius:2px;transform-origin:bottom}
-        .cup i:nth-child(1){left:25%;transform:rotate(-12deg)} .cup i:nth-child(2){left:48%} .cup i:nth-child(3){left:70%;transform:rotate(10deg)}
+        .desk{background:#ebe8e3}
+        .desk-vid{position:absolute;object-fit:cover}
         .ghost{position:absolute;top:30%;left:0;right:0;text-align:center;font-size:12vw;font-weight:600;color:#fff;filter:blur(10px);white-space:nowrap;letter-spacing:-.04em}
-        .laptop{position:absolute;left:50%;bottom:24%;width:min(46vw,760px);transform:translateX(-50%)}
-        .scr{height:100%;display:grid;place-items:center;background:linear-gradient(160deg,#eef6ee,#cfe6d4)}
+        .scr{position:absolute;display:grid;place-items:center} /* placed on the video's screen every frame */
         .scr p{font-size:clamp(12px,1.2vw,18px);font-weight:500;color:#1c2a21}
 
         .s3 .line,.s4 .line{position:absolute}
@@ -246,7 +254,6 @@ export default function Film() {
           .s1{grid-template-columns:1fr;padding:0 24px}
           .s1-text{grid-row:2;justify-self:center;text-align:center;margin-top:-18vh}
           .stack{width:78vw;transform:translateY(-12vh)}
-          .laptop{width:84vw} .lamp{width:34vw;left:-6%} .cup{display:none}
           .dash{width:92vw;padding:3%} .dash aside{display:none} .tile span{font-size:9px}
         }
         @media (prefers-reduced-motion:reduce){.bg i{animation:none}}
