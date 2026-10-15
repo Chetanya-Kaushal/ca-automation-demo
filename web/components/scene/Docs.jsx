@@ -4,19 +4,22 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { story } from '@/lib/store';
-import { clamp01, seg, ease, lerp, damp, SRC, FOLD, TINTS, N, paperTexture } from './shared';
+import { clamp01, seg, ease, lerp, damp, SRC, FOLD, TINTS, N } from './shared';
+import { TILES, tileTexture } from './Spiral';
 
-// ─── documents: one instanced mesh, 24 papers ─────────────────────────────
+// ─── documents: 24 cards in the hero spiral's designs, one instanced mesh per design ─
 export default function Docs({ still }) {
-  const ref = useRef();
-  const tex = useMemo(paperTexture, []);
-  const geo = useMemo(() => new RoundedBoxGeometry(0.62, 0.8, 0.03, 2, 0.05), []);
+  const meshes = useRef([]);
+  const CW = .88, CH = .64;
+  const geo = useMemo(() => new RoundedBoxGeometry(CW, CH, 0.03, 2, 0.04), []);
+  const mats = useMemo(() => TILES.map(t => new THREE.MeshPhysicalMaterial({ map: tileTexture(t, CW / CH), roughness: .42, clearcoat: .7, clearcoatRoughness: .25 })), []);
+  const per = Math.ceil(N / TILES.length);
   const items = useMemo(() => Array.from({ length: N }, (_, i) => ({
     s: i % 3, f: (i * 7) % 3, o: i / N, k: Math.floor(i / 3) % 5,
     x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, sc: 1, tint: 0,
   })), []);
   const tmp = useMemo(() => new THREE.Object3D(), []), col = useMemo(() => new THREE.Color(), []);
-  useEffect(() => { for (let i = 0; i < N; i++) ref.current.setColorAt(i, col.set('#ffffff')); }, [col]);
+  useEffect(() => { meshes.current.forEach(m => { for (let j = 0; j < per; j++) m.setColorAt(j, col.set('#ffffff')); }); }, [col, per]);
 
   useFrame((state, dt) => {
     const p = story.p, t = still ? 0 : state.clock.elapsedTime;
@@ -60,18 +63,19 @@ export default function Docs({ still }) {
       it.rx = damp(it.rx, rx, k, dt); it.ry = damp(it.ry, ry, k, dt); it.rz = damp(it.rz, rz, k, dt);
       it.sc = damp(it.sc, sc, k, dt); it.tint = damp(it.tint, tint, k, dt);
       tmp.position.set(it.x, it.y, it.z); tmp.rotation.set(it.rx, it.ry, it.rz); tmp.scale.setScalar(it.sc * appear);
-      tmp.updateMatrix(); ref.current.setMatrixAt(i, tmp.matrix);
-      ref.current.setColorAt(i, col.set('#ffffff').lerp(TINTS[it.f], it.tint * .55));
+      tmp.updateMatrix();
+      const m = meshes.current[i % TILES.length], j = (i / TILES.length) | 0;
+      m.setMatrixAt(j, tmp.matrix);
+      m.setColorAt(j, col.set('#ffffff').lerp(TINTS[it.f], it.tint * .35));
     });
     // causality: the core swells as documents land in it
     if (crossed > (story.crossed || 0)) story.pulse = 1;
     story.crossed = crossed;
-    ref.current.instanceMatrix.needsUpdate = true;
-    ref.current.instanceColor.needsUpdate = true;
+    meshes.current.forEach(m => { m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; });
   });
   return (
-    <instancedMesh ref={ref} args={[geo, null, N]} frustumCulled={false}>
-      <meshPhysicalMaterial map={tex} roughness={.42} clearcoat={.7} clearcoatRoughness={.25} />
-    </instancedMesh>
+    <>
+      {mats.map((m, k) => <instancedMesh key={k} ref={el => (meshes.current[k] = el)} args={[geo, m, per]} frustumCulled={false} />)}
+    </>
   );
 }

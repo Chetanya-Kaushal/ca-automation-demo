@@ -15,7 +15,7 @@ const SLOPE = Math.atan(RISE / (STEP * R));
 const SIZES = [[1.95, 1.4], [1.7, 1.2], [2.05, 1.45], [1.6, 1.25], [1.45, 1.3], [1.35, 1.6], [1.75, 1.25], [1.8, 1.3], [1.9, 1.25], [1.7, 1.15], [1.6, 1.2], [1.85, 1.3]];
 
 const RED = '#e8321f', BLUE = '#4b5cf2', CREAM = '#ecebe4', INK = '#0e0e10', GREY = '#9a9ca3';
-const TILES = [
+export const TILES = [
   { bg: RED, draw: (g, w, h) => { big(g, 'खाता', w * .08, h * .78, h * .5, INK); dot(g, w * .78, h * .26, h * .13, INK, CREAM); } },
   { bg: CREAM, draw: (g, w, h) => { big(g, 'GST', w * .08, h * .62, h * .36, INK); small(g, 'RETURN · Q3', w * .08, h * .86, INK); dot(g, w * .86, h * .18, h * .05, RED); } },
   { bg: INK, draw: (g, w, h) => { orb(g, w * .5, h * .55, h * .36); } },
@@ -48,7 +48,7 @@ function metal(g, w, h) {
   g.fillStyle = k; g.beginPath(); g.ellipse(w * .5, h * .62, w * .36, h * .2, 0, 0, 7); g.fill();
   g.fillStyle = '#e9eaee'; g.beginPath(); g.arc(w * .5, h * .38, h * .1, 0, 7); g.fill();
 }
-function tileTexture(t, aspect) {
+export function tileTexture(t, aspect) {
   const h = 384, w = Math.round(h * aspect), c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.fillStyle = t.bg; g.fillRect(0, 0, w, h); g.textBaseline = 'alphabetic'; t.draw(g, w, h);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
