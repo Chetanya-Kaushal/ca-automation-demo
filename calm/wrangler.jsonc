@@ -1,0 +1,7 @@
+// Preview of the calm, film-style cut. Static files only: no API, no database, no reminder cron,
+// so it can never touch the live site's data. Staff app links point at the main site.
+{
+  "name": "ledger-hackers-calm",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "../web/out", "not_found_handling": "404-page" }
+}
