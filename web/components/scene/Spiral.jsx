@@ -62,11 +62,12 @@ export function tileTexture(t, aspect) {
 export default function Spiral({ still, layout = {} }) {
   const { r: Rr = R, perTurn = PER_TURN, rise: RISEr = RISE, count: COUNTr = COUNT, speed: SPEEDr = SPEED, card = 1,
     position = [-.5, -1.7, 1.1], trim = true, spin } = layout;
+  const [cw, ch] = Array.isArray(card) ? card : [card, card]; // width / height scale
   const STEPr = Math.PI * 2 / perTurn, SLOPEr = Math.atan(RISEr / (STEPr * Rr));
   const g = useRef(), fronts = useRef([]), backs = useRef([]);
   const { tiles, mats } = useMemo(() => {
     const tiles = TILES.map((t, k) => {
-      const w = SIZES[k][0] * card, h = SIZES[k][1] * card;
+      const w = Math.min(SIZES[k][0] * cw, STEPr * Rr - .06), h = SIZES[k][1] * ch; // never wider than its slot on the ring
       // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
       const geo = new THREE.CylinderGeometry(Rr, Rr, h, 48, 1, true, -w / Rr / 2, w / Rr);
       const map = tileTex(k);
@@ -81,7 +82,7 @@ export default function Spiral({ still, layout = {} }) {
       };
     });
     return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
-  }, [Rr, card, COUNTr]);
+  }, [Rr, cw, ch, COUNTr, STEPr]);
   const tmp = useMemo(() => { const o = new THREE.Object3D(); o.rotation.order = 'YZX'; return o; }, []);
   const sp = useRef(0);
 
