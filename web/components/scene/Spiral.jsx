@@ -58,26 +58,30 @@ export function tileTexture(t, aspect) {
   return tex;
 }
 
-export default function Spiral({ still }) {
+// layout overrides let a page frame its own spiral (radius, steepness, card scale) without touching the defaults
+export default function Spiral({ still, layout = {} }) {
+  const { r: Rr = R, perTurn = PER_TURN, rise: RISEr = RISE, count: COUNTr = COUNT, speed: SPEEDr = SPEED, card = 1,
+    position = [-.5, -1.7, 1.1], trim = true, spin } = layout;
+  const STEPr = Math.PI * 2 / perTurn, SLOPEr = Math.atan(RISEr / (STEPr * Rr));
   const g = useRef(), fronts = useRef([]), backs = useRef([]);
   const { tiles, mats } = useMemo(() => {
     const tiles = TILES.map((t, k) => {
-      const [w, h] = SIZES[k];
+      const w = SIZES[k][0] * card, h = SIZES[k][1] * card;
       // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
-      const geo = new THREE.CylinderGeometry(R, R, h, 48, 1, true, -w / R / 2, w / R);
+      const geo = new THREE.CylinderGeometry(Rr, Rr, h, 48, 1, true, -w / Rr / 2, w / Rr);
       const map = tileTex(k);
       // seen from inside (far side of the ribbon) the print still reads the right way round, slightly shaded:
       // a mirrored-UV copy of the shape reuses the same texture instead of uploading a second one
       const inner = geo.clone(), uv = inner.attributes.uv;
       for (let q = 0; q < uv.count; q++) uv.setX(q, 1 - uv.getX(q));
       return {
-        geo, inner, n: Math.ceil((COUNT - k) / TILES.length),
+        geo, inner, n: Math.ceil((COUNTr - k) / TILES.length),
         front: new THREE.MeshStandardMaterial({ map, roughness: .5, metalness: .05, transparent: true }),
         back: new THREE.MeshStandardMaterial({ map, color: '#a9abb3', roughness: .6, side: THREE.BackSide, transparent: true }),
       };
     });
     return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
-  }, []);
+  }, [Rr, card, COUNTr]);
   const tmp = useMemo(() => { const o = new THREE.Object3D(); o.rotation.order = 'YZX'; return o; }, []);
   const sp = useRef(0);
 
@@ -91,13 +95,13 @@ export default function Spiral({ still }) {
     g.current.scale.set(1 + out * .6, 1 + out * .25, 1 + out * .6);
     mats.forEach(m => (m.opacity = 1 - out));
     // portrait phones: the headline fills the lower half, so the ribbon starts above it
-    const lo = state.size.width / state.size.height < .8 ? COUNT * .4 : 0;
+    const lo = trim && state.size.width / state.size.height < .8 ? COUNTr * .4 : 0;
     // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
-    for (let i = 0; i < COUNT; i++) {
-      const s = (i + t * SPEED) % COUNT;
-      const edge = Math.max(0, Math.min(1, (s - lo) / 1.5, (COUNT - s) / 1.5));
-      tmp.position.set(0, (s - COUNT / 2) * RISE, 0);
-      tmp.rotation.set(0, s * STEP + p * 6, SLOPE);
+    for (let i = 0; i < COUNTr; i++) {
+      const s = (i + t * SPEEDr) % COUNTr;
+      const edge = Math.max(0, Math.min(1, (s - lo) / 1.5, (COUNTr - s) / 1.5));
+      tmp.position.set(0, (s - COUNTr / 2) * RISEr, 0);
+      tmp.rotation.set(0, s * STEPr + p * 6 + (spin?.value || 0), SLOPEr);
       tmp.scale.setScalar(Math.max(ease(edge), .0001));
       tmp.updateMatrix();
       const k = i % TILES.length, j = (i / TILES.length) | 0;
@@ -107,7 +111,7 @@ export default function Spiral({ still }) {
   });
 
   return (
-    <group ref={g} position={[-.5, -1.7, 1.1]}>
+    <group ref={g} position={position}>
       {tiles.map((c, k) => (
         <group key={k}>
           <instancedMesh ref={el => (fronts.current[k] = el)} args={[c.geo, c.front, c.n]} frustumCulled={false} />
