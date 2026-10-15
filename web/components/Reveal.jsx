@@ -1,10 +1,10 @@
 'use client';
 import { useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
-import { finishIntro, videoDone } from '@/lib/intro';
+import { finishIntro } from '@/lib/intro';
 import { lenis } from '@/lib/smooth';
 
-// Stage two of the opening, after the intro video. A glowing dot bounces in, a stroke drops onto it to make "!",
+// The opening. A glowing dot bounces in, a stroke drops onto it to make "!",
 // letters tumble in beside it to spell LEDGER!, then flip one by one into HACKERS. The word sinks and grows while
 // dust gathers into portraits of the three of us behind it, then the whole layer hands over to the hero.
 const FIRST = 'LEDGER!', SECOND = 'HACKERS';
@@ -33,12 +33,13 @@ export default function Reveal() {
 
   useGSAP((ctx, contextSafe) => {
     const html = document.documentElement;
-    if (html.classList.contains('no-intro')) { setGone(true); return; }
+    if (html.classList.contains('no-intro')) { finishIntro(); setGone(true); return; }
+    const stopScroll = setTimeout(() => lenis?.stop()); // hold the page still until the opening hands over
     const $ = s => root.current.querySelector(s), $$ = s => [...root.current.querySelectorAll(s)];
     let tl, raf, alive = true;
 
     const done = contextSafe(() => {
-      alive = false; cancelAnimationFrame(raf);
+      alive = false; cancelAnimationFrame(raf); clearTimeout(stopScroll);
       html.classList.remove('intro-on'); lenis?.start();
       finishIntro(); setGone(true);
     });
@@ -135,7 +136,7 @@ export default function Reveal() {
         .to(dust, { a: 0, duration: .7 }, 6.4)
         .to(root.current, { autoAlpha: 0, duration: .8, ease: 'power2.inOut' }, 6.6);
     };
-    videoDone.then(run);
+    run();
 
     const skip = contextSafe(() => { if (tl && tl.time() < 6.4) tl.seek(6.4); else if (!tl) done(); });
     const onKey = e => { if (e.key === 'Escape') skip(); };
