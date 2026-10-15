@@ -53,20 +53,20 @@ function glowTexture(shapes) { // bloom that hugs the leaves: their outlines dra
   g.translate(n / 2, n / 2); g.scale(k, -k);
   g.shadowColor = 'rgba(225,228,255,1)'; g.shadowBlur = 46; g.fillStyle = 'rgba(225,228,255,.9)';
   for (const sh of shapes) { const pts = sh.getPoints(24); g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); g.closePath(); g.fill(); }
-  g.shadowBlur = 110; g.fillStyle = 'rgba(200,205,255,.25)'; g.fillRect(-1.3, -1.3, 2.6, 2.6);
   return new THREE.CanvasTexture(c);
 }
-function tile() { // the dark rounded tile the mark sits on
-  const s = new THREE.Shape(), h = 1.5, r = .5;
-  s.moveTo(-h + r, -h); s.lineTo(h - r, -h); s.absarc(h - r, -h + r, r, -Math.PI / 2, 0); s.lineTo(h, h - r); s.absarc(h - r, h - r, r, 0, Math.PI / 2);
-  s.lineTo(-h + r, h); s.absarc(-h + r, h - r, r, Math.PI / 2, Math.PI); s.lineTo(-h, -h + r); s.absarc(-h + r, -h + r, r, Math.PI, Math.PI * 1.5);
-  return new THREE.ShapeGeometry(s, 24);
+function shade() { // soft dark pool behind the mark: gives the glow contrast without a visible box edge
+  const n = 256, c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d'), r = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+  r.addColorStop(0, 'rgba(4,4,8,.92)'); r.addColorStop(.45, 'rgba(4,4,8,.7)'); r.addColorStop(1, 'rgba(4,4,8,0)');
+  g.fillStyle = r; g.fillRect(0, 0, n, n);
+  return new THREE.CanvasTexture(c);
 }
 
 export default function Core({ still }) {
   const ref = useRef(), warm = useRef(0), bloom = useRef();
   const leaves = useMemo(() => [[1, 1], [-1, 1], [-1, -1], [1, -1]].map(([x, y]) => leaf(x, y)), []);
-  const plate = useMemo(tile, []);
+  const pool = useMemo(shade, []);
   const mat = useMemo(() => new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: { t: { value: 0 }, glow: { value: 1 } }, toneMapped: false }), []);
   const glowMap = useMemo(() => glowTexture(leaves.map(l => l.shape)), [leaves]);
   useFrame((state, dt) => {
@@ -88,7 +88,7 @@ export default function Core({ still }) {
   });
   return (
     <group ref={ref}>
-      <mesh geometry={plate} position-z={-.09}><meshBasicMaterial color="#070709" toneMapped={false} /></mesh>
+      <mesh position-z={-.09} scale={5}><planeGeometry /><meshBasicMaterial map={pool} transparent depthWrite={false} toneMapped={false} /></mesh>
       <mesh ref={bloom} position-z={-.05} scale={PLATE}>
         <planeGeometry />
         <meshBasicMaterial map={glowMap} transparent depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
