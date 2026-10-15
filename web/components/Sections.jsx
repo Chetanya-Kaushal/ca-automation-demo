@@ -26,9 +26,9 @@ export function Demo() {
     <section ref={root} id="demo" className="demo-sec">
       <div className="wrap">
         <div className="sec-head">
-          <span className="eyebrow glass-lite rv">Interactive demo</span>
-          <h2 className="h2 rv">Run the whole workflow.<br /><span className="dim">Right here.</span></h2>
-          <p className="lede rv">Three scenarios with sample data: a family upload, a missing document, and a deadline from reminder to delivery. Turn on Autopilot and watch it decide.</p>
+          <span className="eyebrow glass-lite">Interactive demo</span>
+          <h2 className="h2">Run the whole workflow.<br /><span className="dim">Right here.</span></h2>
+          <p className="lede">Three scenarios with sample data: a family upload, a missing document, and a deadline from reminder to delivery. Turn on Autopilot and watch it decide.</p>
         </div>
         <div className="device bezel rv"><div className="core slab">
           {live ? (
@@ -72,9 +72,9 @@ export function Roadmap() {
     <section ref={root} id="roadmap" className="road">
       <div className="wrap road-grid">
         <div className="road-left">
-          <span className="eyebrow glass-lite rv">Next</span>
-          <h2 className="h2 rv">Where it goes<br />from here.</h2>
-          <p className="lede rv">Intake, sorting, learning, reminders and delivery are live. These come next, in build order.</p>
+          <span className="eyebrow glass-lite">Next</span>
+          <h2 className="h2">Where it goes<br />from here.</h2>
+          <p className="lede">Intake, sorting, learning, reminders and delivery are live. These come next, in build order.</p>
         </div>
         <ol className="road-list">
           {NEXT.map(([ic, t, d], i) => (

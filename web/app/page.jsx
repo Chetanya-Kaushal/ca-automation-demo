@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { startSmoothScroll, scrollToHash } from '@/lib/smooth';
+import { initMotion } from '@/lib/motion';
 import Stage from '@/components/Stage';
 import Reveal from '@/components/Reveal';
 import Nav from '@/components/Nav';
@@ -28,7 +29,9 @@ export default function Page() {
       onEnterBack: () => setActive(true),
     });
     // Pinned sections add height after load, so re-aim deep links like /#demo once positions are known
-    document.fonts?.ready.then(() => { ScrollTrigger.refresh(); scrollToHash(location.hash); });
+    // text is split by its rendered lines, so the motion system waits for the real fonts
+    let endMotion;
+    (document.fonts?.ready || Promise.resolve()).then(() => { endMotion = initMotion(); ScrollTrigger.refresh(); scrollToHash(location.hash); });
     // any laptop: if real frames run long (scrolling over live blur is GPU work), fall back to frosted glass once
     let slow = 0, total = 0, last = 0, raf;
     const watch = t => {
@@ -49,7 +52,7 @@ export default function Page() {
       el.style.setProperty('--my', `${((e.clientY - r.top) / r.height * 100 - 30).toFixed(1)}%`);
     };
     addEventListener('pointermove', sheen, { passive: true });
-    return () => { stop(); cancelAnimationFrame(raf); removeEventListener('pointermove', sheen); };
+    return () => { stop(); endMotion?.(); cancelAnimationFrame(raf); removeEventListener('pointermove', sheen); };
   });
 
   return (

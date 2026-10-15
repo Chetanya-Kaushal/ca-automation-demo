@@ -88,7 +88,6 @@ export default function Pipeline() {
     });
     play();
     const vis = ScrollTrigger.create({ trigger: root.current, start: 'top bottom', end: 'bottom top', onToggle: s => tl && (s.isActive ? tl.play() : tl.pause()) });
-    gsap.from('.pl-head>*', { y: 50, autoAlpha: 0, duration: 1.2, stagger: .1, ease: 'expo.out', scrollTrigger: { trigger: '.pl-head', start: 'top 80%' } });
     return () => { ro.disconnect(); vis.kill(); tl?.kill(); };
   }, { scope: root });
 

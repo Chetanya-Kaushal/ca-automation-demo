@@ -8,8 +8,6 @@ export default function Bento() {
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.from('.bento-head>*', { y: 50, autoAlpha: 0, duration: 1.2, stagger: .1, ease: 'expo.out',
-        scrollTrigger: { trigger: '.bento-head', start: 'top 80%' } });
       gsap.set('.tile', { y: 80, autoAlpha: 0, scale: .96 });
       ScrollTrigger.batch('.tile', {
         start: 'top 88%',

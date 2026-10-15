@@ -94,7 +94,6 @@ export default function Engine() {
     mm.add('(prefers-reduced-motion: no-preference)', () => {
       gsap.fromTo('.eng-screen', { rotateX: 22, scale: .86, y: 60 }, { rotateX: 0, scale: 1, y: 0, ease: 'none',
         scrollTrigger: { trigger: root.current, start: 'top bottom', end: 'top 15%', scrub: true } });
-      gsap.from('.eng-head>*', { y: 50, autoAlpha: 0, duration: 1.2, stagger: .1, ease: 'expo.out', scrollTrigger: { trigger: '.eng-head', start: 'top 80%' } });
     });
     return () => mm.revert();
   }, { scope: root });
