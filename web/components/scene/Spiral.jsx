@@ -7,8 +7,12 @@ import { seg, ease } from './shared';
 
 // ─── hero: a helix of curved editorial cards turning around the core ─────
 // Each card is an arc of a cylinder, so it bends with the spiral like a ribbon of prints.
-// ~14.5 cards per turn, cards almost touching; tall enough to run past the top and bottom of the screen
-const R = 2.75, CW = 1.12, CH = .82, STEP = (CW + .07) / R, RISE = .085, COUNT = 132, SPEED = .55;
+// Like the recording: ~7 big cards per turn and a tall pitch, so the ribbon makes about two turns
+// from the bottom of the screen to the top. Cards tilt with the slope of the helix.
+const R = 2.6, PITCH = 2.35, PER_TURN = 7, STEP = Math.PI * 2 / PER_TURN, RISE = PITCH / PER_TURN, COUNT = 35, SPEED = .32;
+const SLOPE = Math.atan(RISE / (STEP * R));
+// per-tile card size [width along the arc, height]; widths stay under the arc spacing so neighbours never overlap
+const SIZES = [[1.95, 1.4], [1.7, 1.2], [2.05, 1.45], [1.6, 1.25], [1.45, 1.3], [1.35, 1.6], [1.75, 1.25], [1.8, 1.3], [1.9, 1.25], [1.7, 1.15], [1.6, 1.2], [1.85, 1.3]];
 
 const RED = '#e8321f', BLUE = '#4b5cf2', CREAM = '#ecebe4', INK = '#0e0e10', GREY = '#9a9ca3';
 const TILES = [
@@ -52,47 +56,56 @@ function tileTexture(t, aspect) {
 }
 
 export default function Spiral({ still }) {
-  const g = useRef(), fronts = useRef([]), back = useRef();
-  const { geo, mats, backMat } = useMemo(() => {
-    // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
-    const geo = new THREE.CylinderGeometry(R, R, CH, 20, 1, true, -CW / R / 2, CW / R);
-    const mats = TILES.map(t => new THREE.MeshStandardMaterial({ map: tileTexture(t, CW / CH), roughness: .55, metalness: .05, transparent: true }));
-    // backs face inward: plain dark, the reverse of a print
-    const backMat = new THREE.MeshStandardMaterial({ color: '#16171c', roughness: .7, side: THREE.BackSide, transparent: true });
-    return { geo, mats, backMat };
+  const g = useRef(), fronts = useRef([]), backs = useRef([]);
+  const { tiles, mats } = useMemo(() => {
+    const tiles = TILES.map((t, k) => {
+      const [w, h] = SIZES[k];
+      // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
+      const geo = new THREE.CylinderGeometry(R, R, h, 24, 1, true, -w / R / 2, w / R);
+      const map = tileTexture(t, w / h);
+      // seen from inside (far side of the ribbon) the print still reads the right way round, slightly shaded
+      const inner = map.clone(); inner.wrapS = THREE.RepeatWrapping; inner.repeat.x = -1; inner.needsUpdate = true;
+      return {
+        geo, n: Math.ceil((COUNT - k) / TILES.length),
+        front: new THREE.MeshStandardMaterial({ map, roughness: .5, metalness: .05, transparent: true }),
+        back: new THREE.MeshStandardMaterial({ map: inner, color: '#a9abb3', roughness: .6, side: THREE.BackSide, transparent: true }),
+      };
+    });
+    return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
   }, []);
-  const tmp = useMemo(() => new THREE.Object3D(), []);
+  const tmp = useMemo(() => { const o = new THREE.Object3D(); o.rotation.order = 'YZX'; return o; }, []);
 
-  useFrame((state, dt) => {
+  useFrame((state) => {
     const t = still ? 0 : state.clock.elapsedTime, p = story.p;
     const out = ease(seg(p, 0, .035)); // scroll starts: the ribbon widens and dissolves, the papers take over
     g.current.visible = out < 1;
     if (!g.current.visible) return;
     g.current.scale.set(1 + out * .6, 1 + out * .25, 1 + out * .6);
-    mats.forEach(m => (m.opacity = 1 - out)); backMat.opacity = 1 - out;
-    // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
+    mats.forEach(m => (m.opacity = 1 - out));
     // portrait phones: the headline fills the lower half, so the ribbon starts above it
     const lo = state.size.width / state.size.height < .8 ? COUNT * .4 : 0;
+    // every card slides along the helix: it turns and rises, wrapping from the bottom back to the top off screen
     for (let i = 0; i < COUNT; i++) {
       const s = (i + t * SPEED) % COUNT;
-      const edge = Math.max(0, Math.min(1, (s - lo) / 8, (COUNT - s) / 8)); // grow in at the bottom, shrink out at the top
+      const edge = Math.max(0, Math.min(1, (s - lo) / 1.5, (COUNT - s) / 1.5));
       tmp.position.set(0, (s - COUNT / 2) * RISE, 0);
-      tmp.rotation.set(0, s * STEP + p * 6, 0);
+      tmp.rotation.set(0, s * STEP + p * 6, SLOPE);
       tmp.scale.setScalar(Math.max(ease(edge), .0001));
       tmp.updateMatrix();
-      fronts.current[i % TILES.length].setMatrixAt((i / TILES.length) | 0, tmp.matrix);
-      back.current.setMatrixAt(i, tmp.matrix);
+      const k = i % TILES.length, j = (i / TILES.length) | 0;
+      fronts.current[k].setMatrixAt(j, tmp.matrix); backs.current[k].setMatrixAt(j, tmp.matrix);
     }
-    fronts.current.forEach(m => (m.instanceMatrix.needsUpdate = true));
-    back.current.instanceMatrix.needsUpdate = true;
+    for (let k = 0; k < TILES.length; k++) { fronts.current[k].instanceMatrix.needsUpdate = true; backs.current[k].instanceMatrix.needsUpdate = true; }
   });
 
   return (
-    <group ref={g} position={[0, -1.7, 0]} rotation={[0, 0, -.06]}>
-      {mats.map((m, k) => (
-        <instancedMesh key={k} ref={el => (fronts.current[k] = el)} args={[geo, m, Math.ceil((COUNT - k) / TILES.length)]} frustumCulled={false} />
+    <group ref={g} position={[-.5, -1.7, 1.1]}>
+      {tiles.map((c, k) => (
+        <group key={k}>
+          <instancedMesh ref={el => (fronts.current[k] = el)} args={[c.geo, c.front, c.n]} frustumCulled={false} />
+          <instancedMesh ref={el => (backs.current[k] = el)} args={[c.geo, c.back, c.n]} frustumCulled={false} />
+        </group>
       ))}
-      <instancedMesh ref={back} args={[geo, backMat, COUNT]} frustumCulled={false} />
     </group>
   );
 }
