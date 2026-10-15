@@ -7,12 +7,14 @@
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/app.css">
+<link rel="stylesheet" href="/orb-btn.css">
 <style>
 main{padding:28px 0 64px}
 .login{max-width:400px;margin:12vh auto 0;padding:28px}
 .login h1{font-size:1.6rem;letter-spacing:-.025em;margin-bottom:6px}
 .login p{color:var(--text-2);font-size:14.5px;margin-bottom:20px}
 .login form{display:flex;flex-direction:column;gap:14px}
+.login .orb-btn{align-self:flex-start;font-size:14px;margin-top:4px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
 .stat{padding:16px}
 .stat b{display:block;font-size:28px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -101,7 +103,7 @@ h2.sec{font-size:13px;font-weight:600;color:var(--text-3);text-transform:upperca
     <form id="loginForm">
       <label class="f">Staff token<input class="input" type="password" id="token" autocomplete="current-password" required></label>
       <p class="err" id="loginErr" role="alert"></p>
-      <button class="btn btn-primary" type="submit">Sign in</button>
+      <button class="orb-btn" type="submit"><span class="orb-label">Sign in</span><span class="orb" aria-hidden="true"><span class="orb-wave a"></span><span class="orb-wave b"></span><i class="orb-bub"></i><i class="orb-bub"></i><i class="orb-bub"></i><i class="orb-bub"></i><svg class="mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></svg><svg class="lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span></button>
     </form>
   </section>
 

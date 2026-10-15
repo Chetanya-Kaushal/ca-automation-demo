@@ -9,7 +9,7 @@ const SLIDES = [
 ];
 // Beat timings (seconds into a slide)
 const REVEAL = 0, BOLT = 3.0, BOLT_END = 4.0, FOUNTAIN = 4.0, FORM = 4.5, RELEASE = 6.6, NEXT = 7.4;
-const MAX = 18000;
+const MAX = 40000;
 // Swirling flow field: every particle is advected by it, so sparks curl like a plume instead of flying straight
 const flow = (x, y, t) => Math.sin(x * .006 + t * .6) * 2.1 + Math.cos(y * .008 - t * .45) * 1.7 + Math.sin((x + y) * .003 + t * .3);
 
@@ -43,9 +43,9 @@ export default function Sparks() {
         words.push({ w, x, y }); x += ww;
       });
       const bfs = Math.max(48, Math.min(150, W * (s.burst.length > 8 ? .085 : .12)));
+      words.forEach(o => (o.wd = ctx.measureText(o.w).width));
       return { fs, words, top: H * .42 - fs, bottom: y + fs * .3, x0, x1: x0 + maxW,
-        wordPts: sample(words.map(o => [o.w, o.x, o.y]), `600 ${fs}px ${font}`, Math.max(1.5, fs / 40)),
-        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(1.5, bfs / 64)), released: 0 };
+        burstPts: sample([[s.burst, x0, H * .55]], `700 ${bfs}px ${font}`, Math.max(1, bfs / 95)) };
     };
     const sample = (items, f, step) => {
       const o = document.createElement('canvas'); o.width = W; o.height = H;
@@ -57,7 +57,7 @@ export default function Sparks() {
     };
 
     const resize = () => {
-      dpr = Math.min(devicePixelRatio || 1, 1.5); W = c.clientWidth; H = c.clientHeight;
+      dpr = Math.min(devicePixelRatio || 1, 2); W = c.clientWidth; H = c.clientHeight; // dpr 2: the dust is sub-pixel fine
       c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (slide >= 0) L = layout(SLIDES[slide]);
     };
@@ -88,66 +88,80 @@ export default function Sparks() {
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = 'rgba(3,3,5,.42)'; ctx.fillRect(0, 0, W, H); // short trails for the embers
 
-      // 1 · words fade in one by one, grey to white, rising slightly
+      // 1 · words fade in one by one, grey to white, rising slightly; 2 · as the bolt passes, each word dims and fades
       const boltX = t < BOLT ? -1e9 : L.x0 - 60 + (L.x1 - L.x0 + 160) * ease((t - BOLT) / (BOLT_END - BOLT));
-      if (t < BOLT_END + .1) {
-        ctx.save();
-        if (t >= BOLT) { ctx.beginPath(); ctx.rect(boltX, 0, W, H); ctx.clip(); }
+      if (t < BOLT_END + .5) {
         ctx.font = `600 ${L.fs}px ${font}`; ctx.textBaseline = 'alphabetic';
         L.words.forEach((o, i) => {
-          const k = ease((t - REVEAL - .25 - i * .16) / .7);
-          if (k <= 0) return;
-          const g = 120 + 135 * k | 0;
-          ctx.fillStyle = `rgba(${g},${g},${g},${k})`; ctx.fillText(o.w, o.x, o.y + (1 - k) * 14);
+          const k = ease((t - REVEAL - .25 - i * .16) / .7), gone = ease((boltX - o.x - o.wd * .3) / 140);
+          const a = k * (1 - gone);
+          if (a <= .01) return;
+          const g = (120 + 135 * k) * (1 - .55 * gone) | 0;
+          ctx.fillStyle = `rgba(${g},${g},${g},${a})`; ctx.fillText(o.w, o.x, o.y + (1 - k) * 14);
         });
-        ctx.restore();
       }
-      // 2 · the bolt burns the words away into embers as it passes
       if (t >= BOLT && t < BOLT_END + .15) {
-        while (L.released < L.wordPts.length && L.wordPts[L.released][0] < boltX) {
-          const [x, y] = L.wordPts[L.released++];
-          if (Math.random() < .55) spawn(x, y, (Math.random() - .2) * 220, -Math.random() * 260, 0);
+        for (let k = 0; k < 10; k++) { // sparse welding sparks thrown off the bolt
+          const ang = Math.random() * 6.28, sp = 200 + Math.random() * 420;
+          spawn(boltX + (Math.random() - .5) * 20, L.top - 80 + Math.random() * (L.bottom - L.top + 200), Math.cos(ang) * sp, Math.sin(ang) * sp - 80, 3);
         }
         bolt(boltX, t);
       }
-      // 3 · a sparkler fountain rises, then 4 · embers fly up and settle into the burst word
-      if (t >= FOUNTAIN && t < FORM + .4) for (let k = 0; k < 50; k++)
-        spawn(L.x0 + W * .12 + (Math.random() - .5) * 60, H + 10, (Math.random() - .5) * 260, -380 - Math.random() * 520, 0);
-      if (t >= FORM) { // stream embers into the letters left to right over ~0.9s, so the word fills in
+      // 3 · a dense plume of fine sparks rises, then 4 · streams into the burst word as gold dust
+      if (t >= FOUNTAIN && t < FORM + .5) for (let k = 0; k < 110; k++)
+        spawn(L.x0 + W * .12 + (Math.random() - .5) * 90, H + 10, (Math.random() - .5) * 240, -420 - Math.random() * 520, 0);
+      if (t >= FORM) { // fill the letters left to right over ~0.9s
         const want = Math.min(L.burstPts.length, Math.floor(L.burstPts.length * (t - FORM) / .9));
         for (L.sent = L.sent || 0; L.sent < want; L.sent++) {
           const [x, y] = L.burstPts[L.sent];
           spawn(L.x0 + W * .12 + (Math.random() - .5) * 140, H * .92 + Math.random() * 50, (Math.random() - .5) * 300, -420 - Math.random() * 260, 1, x, y);
         }
       }
-      if (t >= RELEASE && !L.dropped) { L.dropped = true; for (let i = 0; i < count; i++) if (mode[i] === 1) { mode[i] = 2; vx[i] = (Math.random() - .5) * 30; vy[i] = -20 - Math.random() * 40; } }
+      // 5 · the word heats to orange, hazes and fades (no flying off)
+      if (t >= RELEASE && !L.dropped) { L.dropped = true; for (let i = 0; i < count; i++) if (mode[i] === 1) { mode[i] = 2; vx[i] = (Math.random() - .5) * 24; vy[i] = (Math.random() - .5) * 24; } }
 
-      // integrate + draw embers additively
-      ctx.globalCompositeOperation = 'lighter';
-      const heat = Math.max(0, Math.min(1, (t - FORM - .6) / 1.2)); // assembled text cools from gold toward white-hot
+      // integrate, then draw in a few alpha buckets (one style change per bucket, not per particle)
+      const heat = Math.max(0, Math.min(1, (t - FORM - .6) / 1.2));
+      const melt = Math.max(0, Math.min(1, (t - RELEASE) / (NEXT - RELEASE - .1)));
+      const NB = 5, dust = Array.from({ length: NB }, () => []), streak = Array.from({ length: NB }, () => []);
       let alive = 0;
       for (let i = 0; i < count; i++) {
-        const a = flow(px[i], py[i], t);
-        if (mode[i] === 1) { // seek the letter: swirl while far away, settle into place as it arrives
+        const a = flow(px[i], py[i], t), m = mode[i];
+        if (m === 1) { // seek the letter: swirl while far, settle as it arrives
           const dx = tx[i] - px[i], dy = ty[i] - py[i], near = Math.exp(-Math.hypot(dx, dy) / 70);
           vx[i] += (dx * 30 + Math.cos(a) * 260 * (1 - near)) * dt; vy[i] += (dy * 30 + Math.sin(a) * 260 * (1 - near)) * dt;
           const d = Math.exp(-(6 + 6 * near) * dt); vx[i] *= d; vy[i] *= d;
-        } else if (mode[i] === 2) { // deform: letters melt into drifting, curling smoke
-          vx[i] += Math.cos(a) * 180 * dt; vy[i] += (Math.sin(a) * 180 - 40) * dt;
-          const d = Math.exp(-1.6 * dt); vx[i] *= d; vy[i] *= d; life[i] -= dt * (.55 + seed[i] * .06);
-        } else { // fountain / bolt embers: gravity plus swirl, burning out before they pile up
-          vy[i] += 380 * dt; vx[i] += Math.cos(a) * 120 * dt; vx[i] *= .992; life[i] -= dt * (.95 + seed[i] * .1);
+        } else if (m === 2) { // haze: tiny jitter, slow spread, fade
+          vx[i] += Math.cos(a) * 30 * dt; vy[i] += Math.sin(a) * 30 * dt; life[i] = 1 - melt;
+        } else if (m === 3) { // bolt sparks: fast, short-lived, light gravity
+          vy[i] += 260 * dt; vx[i] *= .985; life[i] -= dt * (1.8 + seed[i] * .2);
+        } else { // fountain: gravity plus swirl, burns out before piling up
+          vy[i] += 380 * dt; vx[i] += Math.cos(a) * 120 * dt; vx[i] *= .992; life[i] -= dt * (1.1 + seed[i] * .1);
         }
         px[i] += vx[i] * dt; py[i] += vy[i] * dt;
-        if (life[i] <= 0 || py[i] > H + 40) continue;
-        const tw = .6 + .4 * Math.sin(t * 9 + seed[i] * 7), al = Math.min(1, life[i] * tw * 1.2);
-        const r = 255, gg = mode[i] ? 196 + 30 * heat | 0 : 170 + 40 * life[i] | 0, b = mode[i] ? 105 + 45 * heat | 0 : 80; // stays warm gold, only a hint of white-hot
-        ctx.fillStyle = `rgba(${r},${gg},${b},${al})`;
-        const s = mode[i] === 1 ? 1.3 : 1;
-        ctx.fillRect(px[i] - s / 2, py[i] - s / 2, s, s);
-        // keep live particles packed at the front of the arrays
+        if (life[i] <= .01 || py[i] > H + 40) continue;
+        const tw = m >= 1 && m <= 2 ? .75 + .25 * Math.sin(t * 7 + seed[i] * 7) : 1;
+        const b = Math.min(NB - 1, (life[i] * tw * NB) | 0);
+        if (m === 1 || m === 2) dust[b].push(px[i], py[i]);
+        else { const k = m === 3 ? .018 : .011; streak[b].push(px[i], py[i], px[i] - vx[i] * k, py[i] - vy[i] * k); }
         px[alive] = px[i]; py[alive] = py[i]; vx[alive] = vx[i]; vy[alive] = vy[i]; tx[alive] = tx[i]; ty[alive] = ty[i];
-        life[alive] = life[i]; mode[alive] = mode[i]; seed[alive] = seed[i]; alive++;
+        life[alive] = life[i]; mode[alive] = m; seed[alive] = seed[i]; alive++;
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      // dust: pale gold → warm sand, then orange as it melts
+      const dr = 255, dg = 198 - 8 * heat - 70 * melt | 0, db = 112 + 10 * heat - 80 * melt | 0, ds = .9 + melt * .6;
+      ctx.lineWidth = .8; ctx.lineCap = 'round';
+      for (let k = 0; k < NB; k++) {
+        const al = (k + 1) / NB;
+        ctx.fillStyle = `rgba(${dr},${dg},${db},${al})`;
+        const D = dust[k];
+        for (let j = 0; j < D.length; j += 2) ctx.fillRect(D[j] - ds / 2, D[j + 1] - ds / 2, ds, ds);
+        const S = streak[k];
+        if (!S.length) continue;
+        ctx.strokeStyle = `rgba(255,${190 + 40 * al | 0},${110 + 60 * al | 0},${al})`;
+        ctx.beginPath();
+        for (let j = 0; j < S.length; j += 4) { ctx.moveTo(S[j], S[j + 1]); ctx.lineTo(S[j + 2], S[j + 3]); }
+        ctx.stroke();
       }
       count = alive;
     };

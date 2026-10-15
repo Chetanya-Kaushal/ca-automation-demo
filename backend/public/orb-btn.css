@@ -1,0 +1,38 @@
+/* Staff sign-in button: glossy black pill with a glass orb of green liquid.
+   Shared by the launch site nav and the staff app (served at /orb-btn.css). Sized in em: set font-size to scale. */
+.orb-btn{--lvl:74%;position:relative;display:inline-flex;align-items:center;gap:1.1em;height:3.4em;padding:0 .3em 0 1.6em;border:0;border-radius:999px;cursor:pointer;
+  font:500 1em/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;color:#d4d6d4;text-decoration:none;white-space:nowrap;
+  background:linear-gradient(180deg,#3b3c3d 0%,#1d1e1f 46%,#121313 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 3px rgba(0,0,0,.6),0 0 0 1px #0b0b0b,0 10px 18px -6px rgba(0,0,0,.55),0 22px 34px -14px rgba(0,0,0,.45);
+  transition:transform .5s cubic-bezier(.34,1.56,.64,1),box-shadow .5s ease;-webkit-tap-highlight-color:transparent}
+.orb-btn::before{content:"";position:absolute;inset:1px 1.4em auto;height:45%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,0));pointer-events:none}
+.orb-label{position:relative;text-shadow:0 1px 0 rgba(0,0,0,.7)}
+.orb{position:relative;flex:none;width:2.75em;height:2.75em;border-radius:50%;overflow:hidden;isolation:isolate;
+  background:radial-gradient(circle at 50% 30%,#2a2c2c,#070808 70%);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.9),inset 0 -1px 1px rgba(255,255,255,.18),0 0 0 2px #0a0a0a,0 0 0 3px rgba(255,255,255,.08);
+  transition:box-shadow .6s ease}
+/* liquid: two slowly turning rounded squares; their top edge is the wave */
+.orb-wave{position:absolute;left:-55%;width:210%;height:210%;top:var(--lvl);border-radius:43%;transition:top .9s cubic-bezier(.34,1.3,.5,1);animation:orb-spin 7s linear infinite}
+.orb-wave.a{background:linear-gradient(180deg,#5fd18c,#1f7a46 30%,#0d3f24);opacity:.9}
+.orb-wave.b{margin-top:.12em;border-radius:40%;background:linear-gradient(180deg,#86e8ab,#2a8f57 25%,#11512f);opacity:.55;animation-duration:10s;animation-direction:reverse}
+.orb-bub{position:absolute;bottom:8%;width:.14em;height:.14em;border-radius:50%;background:#d8ffe6;opacity:0;animation:orb-rise 2.4s ease-in infinite}
+.orb-bub:nth-child(3){left:30%;animation-delay:.2s}.orb-bub:nth-child(4){left:52%;animation-delay:1s;width:.1em;height:.1em}
+.orb-bub:nth-child(5){left:68%;animation-delay:1.6s}.orb-bub:nth-child(6){left:42%;animation-delay:.7s;width:.09em;height:.09em}
+/* glass: specular cap + dashed inner ring that shows on hover */
+.orb::before{content:"";position:absolute;z-index:3;inset:6% 22% 58%;border-radius:50%;background:radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.32),rgba(255,255,255,0) 70%);pointer-events:none}
+.orb::after{content:"";position:absolute;z-index:3;inset:9%;border-radius:50%;border:1px dashed rgba(220,255,232,.45);opacity:0;transform:rotate(0);transition:opacity .5s ease;animation:orb-spin 14s linear infinite;pointer-events:none}
+.orb svg{position:absolute;z-index:2;left:50%;top:50%;width:38%;height:38%;margin:-19% 0 0 -19%;fill:none;stroke:#e9ece9;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));transition:opacity .35s ease,transform .5s cubic-bezier(.34,1.56,.64,1)}
+.orb .lock{opacity:0;transform:scale(.6) translateY(15%)}
+.orb-btn:hover,.orb-btn:focus-visible{--lvl:46%}
+.orb-btn:hover .orb,.orb-btn:focus-visible .orb{box-shadow:inset 0 2px 4px rgba(0,0,0,.6),inset 0 0 .6em rgba(120,255,170,.45),0 0 0 2px #0a0a0a,0 0 0 3px rgba(110,240,160,.55),0 0 1.1em rgba(80,220,130,.55)}
+.orb-btn:hover .orb::after,.orb-btn:focus-visible .orb::after{opacity:1}
+.orb-btn:hover .orb-bub,.orb-btn:focus-visible .orb-bub{animation-play-state:running}
+.orb-btn:hover .mail,.orb-btn:focus-visible .mail{opacity:0;transform:scale(.6) translateY(-15%)}
+.orb-btn:hover .lock,.orb-btn:focus-visible .lock{opacity:1;transform:none}
+.orb-btn:active{transform:scale(.97)}
+.orb-btn:focus-visible{outline:2px solid #6ee7a0;outline-offset:3px}
+.orb-btn:not(:hover):not(:focus-visible) .orb-bub{animation:none}
+@keyframes orb-spin{to{transform:rotate(360deg)}}
+@keyframes orb-rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}70%{opacity:.7}100%{transform:translateY(-1.1em);opacity:0}}
+@media (prefers-reduced-motion:reduce){.orb-wave,.orb::after,.orb-bub{animation:none}.orb-wave{transition-duration:.2s}}

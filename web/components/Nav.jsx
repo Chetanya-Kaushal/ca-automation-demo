@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP } from '@/lib/gsap';
-import Icon from './Icon';
 import { lenis } from '@/lib/smooth';
 import { introDone } from '@/lib/intro';
 import HackerMark from './HackerMark';
@@ -48,7 +47,7 @@ export default function Nav() {
         <ul className="nav-links">
           {LINKS.map(([l, h]) => <li key={h}><a href={h}>{l}</a></li>)}
         </ul>
-        <a href="/app" className="nav-cta">Staff sign in<Icon name="up" size={14} /></a>
+        <a href="/app" className="nav-cta orb-btn"><span className="orb-label">Staff sign in</span><span className="orb" aria-hidden="true"><span className="orb-wave a"></span><span className="orb-wave b"></span><i className="orb-bub"></i><i className="orb-bub"></i><i className="orb-bub"></i><i className="orb-bub"></i><svg className="mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></svg><svg className="lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span></a>
         <button ref={burger} className={`burger ${open ? 'is-open' : ''}`} aria-controls="site-menu" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(o => !o)}>
           <span /><span />
         </button>
@@ -69,8 +68,7 @@ export default function Nav() {
         .nav-links{display:flex;list-style:none;gap:2px}
         .nav-links a{display:block;padding:8px 14px;border-radius:999px;font-size:14px;color:var(--fg-2);transition:color .4s var(--out),background-color .4s var(--out)}
         .nav-links a:hover{color:var(--fg);background:rgba(255,255,255,.08)}
-        .nav-cta{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;margin-left:6px;border-radius:999px;background:var(--fg);color:var(--ink);font-size:14px;font-weight:500;transition:transform .5s var(--spring)}
-        .nav-cta:active{transform:scale(.96)}
+        .nav-cta{font-size:11.5px;margin-left:6px}
         .burger{display:none;position:relative;width:44px;height:44px;border-radius:50%}
         .burger span{position:absolute;left:13px;right:13px;height:1.5px;border-radius:2px;background:var(--fg);transition:transform .6s var(--spring),top .6s var(--spring)}
         .burger span:first-child{top:18px}.burger span:last-child{top:25px}
