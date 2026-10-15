@@ -30,7 +30,7 @@ export const TILES = [
   { bg: '#f0613a', draw: (g, w, h) => { big(g, 'TDS', w * .08, h * .62, h * .36, INK); small(g, 'FORM 16 · 02', w * .08, h * .86, INK); } },
 ];
 function big(g, s, x, y, size, c) { g.fillStyle = c; g.font = `500 ${size}px "Inter", "Helvetica Neue", Arial, sans-serif`; g.fillText(s, x, y); }
-function small(g, s, x, y, c) { g.fillStyle = c; g.globalAlpha = .75; g.font = '500 33px ui-monospace, Menlo, monospace'; g.fillText(s, x, y); g.globalAlpha = 1; }
+function small(g, s, x, y, c) { g.fillStyle = c; g.globalAlpha = .75; g.font = `500 ${g.canvas.height * .086 | 0}px ui-monospace, Menlo, monospace`; g.fillText(s, x, y); g.globalAlpha = 1; }
 function dot(g, x, y, r, c, inner) {
   g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
   if (inner) { g.fillStyle = inner; g.beginPath(); g.arc(x, y, r, Math.PI, 0); g.fill(); }
@@ -48,10 +48,13 @@ function metal(g, w, h) {
   g.fillStyle = k; g.beginPath(); g.ellipse(w * .5, h * .62, w * .36, h * .2, 0, 0, 7); g.fill();
   g.fillStyle = '#e9eaee'; g.beginPath(); g.arc(w * .5, h * .38, h * .1, 0, 7); g.fill();
 }
+// One sharp texture per design, shared by the hero spiral, the story cards and the phone (keeps GPU memory flat)
+const cache = new Map();
+export const tileTex = k => cache.get(k) || cache.set(k, tileTexture(TILES[k], SIZES[k][0] / SIZES[k][1])).get(k);
 export function tileTexture(t, aspect) {
-  const h = 384, w = Math.round(h * aspect), c = document.createElement('canvas'); c.width = w; c.height = h;
+  const h = 640, w = Math.round(h * aspect), c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.fillStyle = t.bg; g.fillRect(0, 0, w, h); g.textBaseline = 'alphabetic'; t.draw(g, w, h);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 16; // clamped to the GPU's maximum; keeps cards crisp when seen edge-on
   return tex;
 }
 
@@ -61,14 +64,16 @@ export default function Spiral({ still }) {
     const tiles = TILES.map((t, k) => {
       const [w, h] = SIZES[k];
       // arc of the cylinder centred on +z, so rotation.y alone places a card on the helix
-      const geo = new THREE.CylinderGeometry(R, R, h, 24, 1, true, -w / R / 2, w / R);
-      const map = tileTexture(t, w / h);
-      // seen from inside (far side of the ribbon) the print still reads the right way round, slightly shaded
-      const inner = map.clone(); inner.wrapS = THREE.RepeatWrapping; inner.repeat.x = -1; inner.needsUpdate = true;
+      const geo = new THREE.CylinderGeometry(R, R, h, 48, 1, true, -w / R / 2, w / R);
+      const map = tileTex(k);
+      // seen from inside (far side of the ribbon) the print still reads the right way round, slightly shaded:
+      // a mirrored-UV copy of the shape reuses the same texture instead of uploading a second one
+      const inner = geo.clone(), uv = inner.attributes.uv;
+      for (let q = 0; q < uv.count; q++) uv.setX(q, 1 - uv.getX(q));
       return {
-        geo, n: Math.ceil((COUNT - k) / TILES.length),
+        geo, inner, n: Math.ceil((COUNT - k) / TILES.length),
         front: new THREE.MeshStandardMaterial({ map, roughness: .5, metalness: .05, transparent: true }),
-        back: new THREE.MeshStandardMaterial({ map: inner, color: '#a9abb3', roughness: .6, side: THREE.BackSide, transparent: true }),
+        back: new THREE.MeshStandardMaterial({ map, color: '#a9abb3', roughness: .6, side: THREE.BackSide, transparent: true }),
       };
     });
     return { tiles, mats: tiles.flatMap(t => [t.front, t.back]) };
@@ -103,7 +108,7 @@ export default function Spiral({ still }) {
       {tiles.map((c, k) => (
         <group key={k}>
           <instancedMesh ref={el => (fronts.current[k] = el)} args={[c.geo, c.front, c.n]} frustumCulled={false} />
-          <instancedMesh ref={el => (backs.current[k] = el)} args={[c.geo, c.back, c.n]} frustumCulled={false} />
+          <instancedMesh ref={el => (backs.current[k] = el)} args={[c.inner, c.back, c.n]} frustumCulled={false} />
         </group>
       ))}
     </group>

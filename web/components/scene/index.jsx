@@ -19,7 +19,7 @@ export default function Scene({ active }) {
   // Quality steps down if the device can't hold the frame rate: sharpness first, then the refractive glass.
   // Start modest on weak machines (few cores / little memory) so they never begin in a stutter.
   const strong = (navigator.hardwareConcurrency || 4) >= 8 && (navigator.deviceMemory || 8) >= 8;
-  const [dpr, setDpr] = useState(Math.min(devicePixelRatio || 1, strong ? (wide ? 1.75 : 1.5) : 1.25));
+  const [dpr, setDpr] = useState(Math.min(devicePixelRatio || 1, strong ? 2 : 1.25));
   const [hq, setHq] = useState(wide && !reduce && strong);
   // While the intro plays, render once (compiles shaders off the critical moment) and then hold still,
   // so the intro has the main thread and GPU to itself
@@ -35,7 +35,7 @@ export default function Scene({ active }) {
 
   return (
     <Canvas dpr={dpr} frameloop={intro ? 'demand' : active ? 'always' : 'never'} camera={{ fov: 35, position: [0, 0, 12.5] }}
-      gl={{ antialias: dpr < 1.5, powerPreference: 'high-performance', stencil: false }} aria-hidden="true">
+      gl={{ antialias: true, powerPreference: 'high-performance', stencil: false }} aria-hidden="true">
       <PerformanceMonitor flipflops={3}
         onDecline={() => (dpr > 1 ? setDpr(1) : setHq(false))}
         onFallback={() => { setDpr(1); setHq(false); }} />

@@ -5,14 +5,14 @@ import { useFrame } from '@react-three/fiber';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { story } from '@/lib/store';
 import { clamp01, seg, ease, lerp, damp, SRC, FOLD, TINTS, N } from './shared';
-import { TILES, tileTexture } from './Spiral';
+import { TILES, tileTex } from './Spiral';
 
 // ─── documents: 24 cards in the hero spiral's designs, one instanced mesh per design ─
 export default function Docs({ still }) {
   const meshes = useRef([]);
   const CW = .88, CH = .64;
   const geo = useMemo(() => new RoundedBoxGeometry(CW, CH, 0.03, 2, 0.04), []);
-  const mats = useMemo(() => TILES.map(t => new THREE.MeshPhysicalMaterial({ map: tileTexture(t, CW / CH), roughness: .42, clearcoat: .7, clearcoatRoughness: .25 })), []);
+  const mats = useMemo(() => TILES.map((t, k) => new THREE.MeshPhysicalMaterial({ map: tileTex(k), roughness: .42, clearcoat: .7, clearcoatRoughness: .25 })), []);
   const per = Math.ceil(N / TILES.length);
   const items = useMemo(() => Array.from({ length: N }, (_, i) => ({
     s: i % 3, f: (i * 7) % 3, o: i / N, k: Math.floor(i / 3) % 5,

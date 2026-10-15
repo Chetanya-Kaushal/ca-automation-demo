@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { story } from '@/lib/store';
-import { seg, ease, lerp, damp, FOLD, PHONE, paperTexture } from './shared';
+import { seg, ease, lerp, damp, FOLD, PHONE } from './shared';
+import { tileTex } from './Spiral';
 
 const W = 2.3, H = 4.7, D = .3, BACK = -D / 2;
 const roundRect = (w, h, r) => {
@@ -27,7 +28,7 @@ export default function Phone() {
     screen: roundRect(W - .14, H - .14, .3),
     island: roundRect(.62, .17, .085),
     bub: new RoundedBoxGeometry(1.5, .38, .02, 4, .18),
-    ret: new RoundedBoxGeometry(.62, .8, .03, 2, .05),
+    ret: new RoundedBoxGeometry(.88, .64, .03, 2, .04),
   }), []);
   const mat = useMemo(() => ({
     // anodised burgundy: metallic, satin, a touch of clearcoat for the sheen in the recording
@@ -39,7 +40,7 @@ export default function Phone() {
     flash: new THREE.MeshBasicMaterial({ color: '#f3efe6', toneMapped: false }),
     dark: new THREE.MeshBasicMaterial({ color: '#07070a' }),
   }), []);
-  const tex = useMemo(paperTexture, []);
+  const tex = useMemo(() => tileTex(7), []); // the filed return arrives as the ITR card
 
   useFrame((state, dt) => {
     const p = story.p, t = state.clock.elapsedTime;
@@ -93,7 +94,7 @@ export default function Phone() {
         </group>
       </group>
       <mesh ref={ret} geometry={geo.ret} scale={0.0001}>
-        <meshPhysicalMaterial map={tex} color="#c9ffe0" roughness={.4} clearcoat={.6} />
+        <meshPhysicalMaterial map={tex} roughness={.4} clearcoat={.6} />
       </mesh>
     </>
   );
