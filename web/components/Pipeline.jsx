@@ -134,7 +134,7 @@ export default function Pipeline() {
       <style>{`
         .pl-sec{padding:clamp(80px,12vh,160px) 0}
         .pl-head{display:flex;flex-direction:column;align-items:flex-start;gap:22px;margin-bottom:48px}
-        .pl-screen{border-radius:22px;overflow:hidden;background:#07080d;font-family:var(--mono);color:#d6dbe6;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 100px -40px rgba(var(--c),.45);transition:box-shadow .8s var(--out)}
+        .pl-screen{border-radius:22px;overflow:hidden;background:rgba(7,8,13,.5);-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);font-family:var(--mono);color:#d6dbe6;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 40px 100px -40px rgba(var(--c),.45);transition:box-shadow .8s var(--out)}
         .pl-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid rgba(255,255,255,.08)}
         .pl-stats>div{padding:14px 18px;border-right:1px solid rgba(255,255,255,.06)}
         .pl-stats small,.pl-stream small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7c8396}
@@ -154,7 +154,7 @@ export default function Pipeline() {
         .pl-lane{position:relative;display:flex;flex-direction:column;gap:10px}
         .pl-lane h3{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfd6e4;padding-bottom:8px;border-bottom:1px solid rgba(var(--c),.5)}
         .pl-lane h3 span{color:rgb(var(--c))}
-        .pl-card{position:relative;transition:background-color .5s cubic-bezier(.2,0,0,1);padding:10px 12px;border-radius:10px;background:rgba(18,20,30,.88);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:box-shadow .5s var(--out),background-color .5s var(--out)}
+        .pl-card{position:relative;transition:background-color .5s cubic-bezier(.2,0,0,1);padding:10px 12px;border-radius:10px;background:rgba(18,20,30,.36);-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:box-shadow .5s var(--out),background-color .5s var(--out)}
         .pl-card b{font-size:12px;color:#eef1f7}.pl-card b::before{content:"■ ";color:rgba(var(--c),.8);font-size:9px}
         .pl-card dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-top:6px;font-size:10px}
         .pl-card dt{color:#6e7588}.pl-card dd{text-align:right;color:#aab2c4}

@@ -26,34 +26,42 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;opa
 .wrap{width:min(1240px,100% - 32px);margin-inline:auto}
 section{position:relative;z-index:2}
 
-/* ── LIQUID GLASS ─────────────────────────────────────────────
-   Translucent fill + specular rim + inner light. Refraction via #liquid on Chromium. */
-.glass{
+/* ── LIQUID GLASS (Apple) ────────────────────────────────────
+   One material everywhere: a thin translucent fill over a real backdrop blur (with saturation, so colour
+   behind it glows through), a specular rim brightest top-left where the light catches the edge, an inner
+   light catch, and a soft sheen that follows the pointer. Refraction via #liquid on capable Chromium. */
+.glass,.glass-lite,.slab{
   position:relative;isolation:isolate;
-  background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.04));
-  -webkit-backdrop-filter:blur(22px) saturate(190%);backdrop-filter:blur(22px) saturate(190%);
+  background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.035) 42%,rgba(255,255,255,.07)),rgba(16,18,28,.18);
+  -webkit-backdrop-filter:blur(26px) saturate(190%) brightness(1.06);backdrop-filter:blur(26px) saturate(190%) brightness(1.06);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.42),
-    inset 0 -1px 0 rgba(255,255,255,.06),
-    inset 0 0 0 1px rgba(255,255,255,.08),
-    inset 0 18px 30px -18px rgba(255,255,255,.18),
-    0 24px 60px -24px rgba(0,0,0,.65);
+    inset 0 1px 0 rgba(255,255,255,.5),
+    inset 1px 0 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(255,255,255,.07),
+    inset 0 22px 34px -22px rgba(255,255,255,.2),
+    0 1px 1px rgba(0,0,0,.18),
+    0 24px 60px -26px rgba(0,0,0,.6);
 }
+/* chips and small controls: lighter weight, smaller shadow (big surfaces read thicker) */
+.glass-lite{-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 1px 0 0 rgba(255,255,255,.12),inset 0 12px 20px -14px rgba(255,255,255,.18),0 10px 28px -14px rgba(0,0,0,.55)}
 .lens-ok .glass.lens{backdrop-filter:url(#liquid) blur(14px) saturate(200%) brightness(1.08)}
-.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-  background:radial-gradient(120% 70% at 18% -10%,rgba(255,255,255,.28),transparent 46%),
-             radial-gradient(90% 60% at 100% 120%,rgba(155,123,255,.16),transparent 60%)}
-
-/* Lite glass: same rim light, no live backdrop blur (cheap enough to use dozens over moving 3D) */
-.glass-lite{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06)),rgba(10,12,20,.55);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.38),inset 0 0 0 1px rgba(255,255,255,.08),0 10px 30px -14px rgba(0,0,0,.6)}
-
-/* Solid "glass" for scrolling cards: same light, no live blur (keeps scrolling at 120 fps) */
-.slab{position:relative;isolation:isolate;
-  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),rgba(12,14,22,.72);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(255,255,255,.06),inset 0 24px 40px -28px rgba(255,255,255,.14)}
-.slab::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-  background:radial-gradient(100% 60% at 0% 0%,rgba(255,255,255,.1),transparent 50%)}
+/* reflection: light catch near the top, tinted caustic low on the far side, sheen tracking the pointer */
+.glass::before,.glass-lite::before,.slab::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:
+    radial-gradient(60% 50% at var(--mx,22%) var(--my,-8%),rgba(255,255,255,.26),transparent 70%),
+    linear-gradient(180deg,rgba(255,255,255,.1),transparent 38%),
+    radial-gradient(90% 60% at 100% 120%,rgba(155,123,255,.14),transparent 60%);
+  transition:background-position .4s var(--out)}
+/* specular rim: a 1px edge that is bright where light hits (top-left), fading round the sides */
+.glass::after,.glass-lite::after,.slab::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;padding:1px;
+  background:linear-gradient(140deg,rgba(255,255,255,.75),rgba(255,255,255,.14) 26%,rgba(255,255,255,0) 52%,rgba(255,255,255,.1) 78%,rgba(255,255,255,.32));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+/* weak devices and reduced transparency: frosted, solid enough to read, no live blur */
+html.weak :is(.glass,.glass-lite,.slab){-webkit-backdrop-filter:none;backdrop-filter:none;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04)),rgba(14,16,26,.86)}
+@media (prefers-reduced-transparency:reduce){:is(.glass,.glass-lite,.slab){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:#151826!important}}
+@media (prefers-contrast:more){:is(.glass,.glass-lite,.slab){background:rgba(14,16,26,.94);box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)}}
 
 /* Double bezel: machined tray + glass plate */
 .bezel{padding:6px;border-radius:var(--r-xl);background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}

@@ -62,12 +62,12 @@ export default function DayReel() {
         .m-ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
         .moment p{font-size:15.5px;line-height:1.55}
         .m-step{margin-top:auto;font-family:var(--mono);font-size:12px;color:var(--fg-3)}
-        .tone-amber .core{background:radial-gradient(90% 60% at 100% 0%,rgba(255,181,71,.2),transparent 60%),rgba(12,14,22,.8)}
-        .tone-red .core{background:radial-gradient(90% 60% at 100% 0%,rgba(255,107,107,.2),transparent 60%),rgba(12,14,22,.8)}
-        .tone-teal .core{background:radial-gradient(90% 60% at 100% 0%,rgba(62,224,197,.2),transparent 60%),rgba(12,14,22,.8)}
-        .tone-violet .core{background:radial-gradient(90% 60% at 100% 0%,rgba(155,123,255,.22),transparent 60%),rgba(12,14,22,.8)}
-        .tone-blue .core{background:radial-gradient(90% 60% at 100% 0%,rgba(76,141,255,.22),transparent 60%),rgba(12,14,22,.8)}
-        .tone-green .core{background:radial-gradient(90% 60% at 100% 0%,rgba(74,222,128,.2),transparent 60%),rgba(12,14,22,.8)}
+        .tone-amber .core{background:radial-gradient(90% 60% at 100% 0%,rgba(255,181,71,.2),transparent 60%),rgba(12,14,22,.2)}
+        .tone-red .core{background:radial-gradient(90% 60% at 100% 0%,rgba(255,107,107,.2),transparent 60%),rgba(12,14,22,.2)}
+        .tone-teal .core{background:radial-gradient(90% 60% at 100% 0%,rgba(62,224,197,.2),transparent 60%),rgba(12,14,22,.2)}
+        .tone-violet .core{background:radial-gradient(90% 60% at 100% 0%,rgba(155,123,255,.22),transparent 60%),rgba(12,14,22,.2)}
+        .tone-blue .core{background:radial-gradient(90% 60% at 100% 0%,rgba(76,141,255,.22),transparent 60%),rgba(12,14,22,.2)}
+        .tone-green .core{background:radial-gradient(90% 60% at 100% 0%,rgba(74,222,128,.2),transparent 60%),rgba(12,14,22,.2)}
         .tone-amber .m-ic{color:var(--amber)}.tone-red .m-ic{color:var(--red)}.tone-teal .m-ic{color:var(--teal)}.tone-violet .m-ic{color:var(--violet)}.tone-blue .m-ic{color:var(--blue)}.tone-green .m-ic{color:var(--green)}
         .reel-bar{height:2px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
         .reel-bar i{display:block;height:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,var(--amber),var(--teal),var(--green))}

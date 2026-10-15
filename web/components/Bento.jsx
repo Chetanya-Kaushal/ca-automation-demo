@@ -94,8 +94,8 @@ export default function Bento() {
         .t-email{grid-column:span 4}
         .t-deliver{grid-column:span 4}
         .t-review{grid-column:span 4}
-        .t-wa .core{background:linear-gradient(180deg,rgba(0,168,132,.14),transparent 60%),rgba(12,14,22,.72)}
-        .mini-chat{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:22px;background:rgba(11,20,26,.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+        .t-wa .core{background:linear-gradient(180deg,rgba(0,168,132,.14),transparent 60%),rgba(12,14,22,.2)}
+        .mini-chat{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:22px;background:rgba(11,20,26,.4);-webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
         .b{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.35;display:flex;align-items:center;gap:8px;opacity:0;animation:pop 9s var(--spring) infinite}
         .b.in{align-self:flex-start;background:#1f2c34}
         .b.out{align-self:flex-end;background:#005c4b}
@@ -107,7 +107,7 @@ export default function Bento() {
         @keyframes dot{0%,60%,100%{transform:none}30%{transform:translateY(-4px)}}
         .big{font-size:clamp(4.5rem,9vw,7.5rem);font-weight:600;letter-spacing:-.06em;line-height:.9;margin-top:auto;font-variant-numeric:tabular-nums}
         .big small{font-size:.4em;letter-spacing:-.02em;color:var(--fg-3)}
-        .t-learn .core{background:radial-gradient(80% 80% at 100% 0%,rgba(155,123,255,.22),transparent 60%),rgba(12,14,22,.72)}
+        .t-learn .core{background:radial-gradient(80% 80% at 100% 0%,rgba(155,123,255,.22),transparent 60%),rgba(12,14,22,.2)}
         .dial{position:relative;width:132px;height:132px;margin:4px 0}
         .dial svg{width:100%;height:100%;transform:rotate(-90deg)}
         .dial circle{fill:none;stroke:rgba(255,255,255,.08);stroke-width:6}
@@ -115,7 +115,7 @@ export default function Bento() {
         @keyframes arc{to{stroke-dashoffset:120}}
         .dial b{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-size:40px;font-weight:600;letter-spacing:-.04em;line-height:1}
         .dial small{display:block;font-size:12px;font-weight:400;letter-spacing:.06em;color:var(--fg-3);text-transform:uppercase}
-        .t-remind .core{background:radial-gradient(70% 70% at 0% 100%,rgba(255,181,71,.16),transparent 60%),rgba(12,14,22,.72)}
+        .t-remind .core{background:radial-gradient(70% 70% at 0% 100%,rgba(255,181,71,.16),transparent 60%),rgba(12,14,22,.2)}
         .review{display:flex;flex-direction:column;gap:8px;margin-top:auto}
         .review div{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);font-size:13.5px;box-shadow:inset 0 0 0 1px rgba(255,180,71,.35)}
         .review div.ok{box-shadow:inset 0 0 0 1px rgba(74,222,128,.25)}

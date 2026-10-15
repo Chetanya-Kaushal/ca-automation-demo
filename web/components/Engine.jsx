@@ -149,7 +149,7 @@ export default function Engine() {
         .eng-head{display:flex;flex-direction:column;align-items:flex-start;gap:22px;margin-bottom:56px}
         .eng-stage{perspective:1600px;padding:0 max(12px,calc((100vw - 1320px)/2))}
         .eng-screen{position:relative;transform-origin:50% 100%;will-change:transform;backface-visibility:hidden;border-radius:22px;overflow:hidden;font-family:var(--mono);color:#cfe0ff;
-          background:linear-gradient(180deg,#0b1736,#081028 60%,#060b1c);box-shadow:0 0 0 1px rgba(127,176,255,.25),0 0 0 10px #05070d,0 0 0 11px rgba(255,255,255,.08),0 60px 120px -30px rgba(40,90,255,.45)}
+          background:linear-gradient(180deg,rgba(11,23,54,.62),rgba(8,16,40,.55) 60%,rgba(6,11,28,.6));-webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);box-shadow:0 0 0 1px rgba(127,176,255,.25),0 0 0 10px #05070d,0 0 0 11px rgba(255,255,255,.08),0 60px 120px -30px rgba(40,90,255,.45)}
         .eng-screen::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 90% at 50% 50%,transparent 60%,rgba(0,0,0,.45)),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
         .eng-top{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(127,176,255,.18);font-size:11px;letter-spacing:.08em;color:#8aa3d6}
         .eng-top b{color:#fff;font-size:14px;letter-spacing:.14em}.eng-top em{font-style:normal;color:#e9f2ff;margin-left:6px}
@@ -164,7 +164,7 @@ export default function Engine() {
         .eng-core{position:relative}
         .eng-core canvas,.eng-wave canvas{position:absolute;inset:0;width:100%;height:100%}
         .eng-toasts{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-        .eng-toast{max-width:260px;padding:9px 12px;border-radius:10px;font-size:11px;line-height:1.4;color:#e9f2ff;background:rgba(10,20,50,.85);box-shadow:inset 0 0 0 1px rgba(127,216,255,.35);animation:toast-in .6s var(--spring) both}
+        .eng-toast{max-width:260px;padding:9px 12px;border-radius:10px;font-size:11px;line-height:1.4;color:#e9f2ff;background:rgba(10,20,50,.45);-webkit-backdrop-filter:blur(14px) saturate(180%);backdrop-filter:blur(14px) saturate(180%);box-shadow:inset 0 0 0 1px rgba(127,216,255,.35);animation:toast-in .6s var(--spring) both}
         .eng-toast:not(:last-child){opacity:.45;transform:scale(.96)}
         @keyframes toast-in{from{opacity:0;transform:translateY(14px) scale(.96)}}
         .eng-side{padding:16px;display:flex;flex-direction:column;gap:12px;border-left:1px solid rgba(127,176,255,.14)}

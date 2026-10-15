@@ -74,7 +74,7 @@ export default function Nav() {
         .burger span:first-child{top:18px}.burger span:last-child{top:25px}
         .burger.is-open span:first-child{top:21.5px;transform:rotate(45deg)}
         .burger.is-open span:last-child{top:21.5px;transform:rotate(-45deg)}
-        .menu{position:fixed;inset:0;z-index:-1;pointer-events:auto;display:flex;align-items:flex-end;padding:120px 24px 56px;border-radius:0;background:rgba(5,6,10,.72)}
+        .menu{position:fixed;inset:0;z-index:-1;pointer-events:auto;display:flex;align-items:flex-end;padding:120px 24px 56px;border-radius:0;background:rgba(5,6,10,.42)}
         .menu ul{list-style:none;display:flex;flex-direction:column;gap:6px}
         .menu-row{overflow:hidden}
         .menu-link{display:block;font-size:clamp(2.4rem,11vw,4rem);font-weight:600;letter-spacing:-.045em;line-height:1.05}
