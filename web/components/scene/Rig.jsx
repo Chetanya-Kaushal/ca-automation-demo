@@ -21,8 +21,9 @@ export default function Rig() {
     const hero = 1 - Math.min(1, f), aspect = size.width / size.height;
     const shift = aspect > 1.2 ? -3.4 * hero : 0;
     // portrait phones: the headline fills the lower half, so the stage starts high and settles as the story begins
-    const lift = aspect < .8 ? -3.2 * hero : 0;
-    v.x += story.pointer.x * .6 + shift; v.y += -story.pointer.y * .35 + story.hero * 1.2 + lift;
+    // the camera stays above the hero water and looks down, which puts the ribbon in the top half
+    const lift = aspect < .8 ? -3.2 * hero : 0, camLift = aspect < .8 ? -.4 * hero : 0;
+    v.x += story.pointer.x * .6 + shift; v.y += -story.pointer.y * .35 + story.hero * 1.2 + camLift;
     v.z *= Math.min(fit, 2.1);
     camera.position.x = damp(camera.position.x, v.x, 5, dt);
     camera.position.y = damp(camera.position.y, v.y, 5, dt);

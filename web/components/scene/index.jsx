@@ -8,6 +8,7 @@ import Wallpaper from './Wallpaper';
 import Core from './Core';
 import Docs from './Docs';
 import Spiral from './Spiral';
+import Water from './Water';
 import Folders from './Folders';
 import Reminders from './Reminders';
 import Phone from './Phone';
@@ -36,9 +37,10 @@ export default function Scene({ active }) {
   return (
     <Canvas dpr={dpr} frameloop={intro ? 'demand' : active ? 'always' : 'never'} camera={{ fov: 35, position: [0, 0, 12.5] }}
       gl={{ antialias: true, powerPreference: 'high-performance', stencil: false }} aria-hidden="true">
-      <PerformanceMonitor flipflops={3}
+      {/* only after the intro: while the scene is held still it would read as 0 fps and downgrade everyone */}
+      {!intro && <PerformanceMonitor flipflops={3}
         onDecline={() => (dpr > 1 ? setDpr(1) : setHq(false))}
-        onFallback={() => { setDpr(1); setHq(false); }} />
+        onFallback={() => { setDpr(1); setHq(false); }} />}
       <color attach="background" args={['#05060a']} />
       <ambientLight intensity={.55} />
       <directionalLight position={[4, 6, 8]} intensity={1.7} />
@@ -50,6 +52,7 @@ export default function Scene({ active }) {
       <Wallpaper still={reduce} />
       <Core hq={hq} still={reduce} />
       <Spiral still={reduce} />
+      <Water hq={hq} still={reduce} />
       <Docs still={reduce} />
       <Folders />
       <Reminders still={reduce} />
