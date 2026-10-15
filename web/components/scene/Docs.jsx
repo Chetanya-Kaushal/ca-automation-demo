@@ -21,6 +21,7 @@ export default function Docs({ still }) {
   useFrame((state, dt) => {
     const p = story.p, t = still ? 0 : state.clock.elapsedTime;
     let crossed = 0;
+    const appear = Math.max(ease(seg(p, .005, .03)), .0001); // hero shows the card spiral; papers fade in as the story starts
     items.forEach((it, i) => {
       // hero: slow tilted orbit around the core
       const ang = it.o * Math.PI * 2 + t * .1;
@@ -58,7 +59,7 @@ export default function Docs({ still }) {
       it.x = damp(it.x, x, k, dt); it.y = damp(it.y, y, k, dt); it.z = damp(it.z, z, k, dt);
       it.rx = damp(it.rx, rx, k, dt); it.ry = damp(it.ry, ry, k, dt); it.rz = damp(it.rz, rz, k, dt);
       it.sc = damp(it.sc, sc, k, dt); it.tint = damp(it.tint, tint, k, dt);
-      tmp.position.set(it.x, it.y, it.z); tmp.rotation.set(it.rx, it.ry, it.rz); tmp.scale.setScalar(it.sc);
+      tmp.position.set(it.x, it.y, it.z); tmp.rotation.set(it.rx, it.ry, it.rz); tmp.scale.setScalar(it.sc * appear);
       tmp.updateMatrix(); ref.current.setMatrixAt(i, tmp.matrix);
       ref.current.setColorAt(i, col.set('#ffffff').lerp(TINTS[it.f], it.tint * .55));
     });

@@ -6,6 +6,7 @@ import { story } from '@/lib/store';
 import Wallpaper from './Wallpaper';
 import Core from './Core';
 import Docs from './Docs';
+import Spiral from './Spiral';
 import Folders from './Folders';
 import Reminders from './Reminders';
 import Phone from './Phone';
@@ -41,6 +42,7 @@ export default function Scene({ active }) {
       </Environment>
       <Wallpaper still={reduce} />
       <Core hq={hq} still={reduce} />
+      <Spiral still={reduce} />
       <Docs still={reduce} />
       <Folders />
       <Reminders still={reduce} />
