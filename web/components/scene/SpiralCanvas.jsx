@@ -22,8 +22,10 @@ export default function SpiralCanvas({ spin }) {
     const byHeight = (1.6 * PER_TURN * RISE) / (2 * t); // laptops: ~1.6 turns from the bottom edge to the top
     const d = aspect < .8 ? byWidth : Math.max(byHeight, byWidth); // camera distance to the axis
     const visH = 2 * (d + R) * t;
-    const count = Math.ceil((visH + 6) / RISE);
-    return { d, l: { r: R, perTurn: PER_TURN, rise: RISE, count, speed: .42, card: CARD, position: [0, 0, 0], trim: false, spin } };
+    // bounce measured from the reference: a smooth sine, ~6s period, ±16% of the screen height at the ribbon
+    const bob = { amp: .16 * 2 * d * t, period: 6 };
+    const count = Math.ceil((visH + 6 + 2 * bob.amp) / RISE); // tall enough that the ends never show at the extremes
+    return { d, l: { r: R, perTurn: PER_TURN, rise: RISE, count, speed: .42, card: CARD, position: [0, 0, 0], trim: false, spin, bob } };
   }, [spin]);
   return (
     <Canvas frameloop={on ? 'always' : 'never'} dpr={[1, Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2)]} camera={{ fov: FOV, position: [0, 0, layout.d] }}

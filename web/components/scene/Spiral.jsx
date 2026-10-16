@@ -61,7 +61,7 @@ export function tileTexture(t, aspect) {
 // layout overrides let a page frame its own spiral (radius, steepness, card scale) without touching the defaults
 export default function Spiral({ still, layout = {} }) {
   const { r: Rr = R, perTurn = PER_TURN, rise: RISEr = RISE, count: COUNTr = COUNT, speed: SPEEDr = SPEED, card = 1,
-    position = [-.5, -1.7, 1.1], trim = true, spin } = layout;
+    position = [-.5, -1.7, 1.1], trim = true, spin, bob } = layout;
   const [cw, ch] = Array.isArray(card) ? card : [card, card]; // width / height scale
   const STEPr = Math.PI * 2 / perTurn, SLOPEr = Math.atan(RISEr / (STEPr * Rr));
   const g = useRef(), fronts = useRef([]), backs = useRef([]);
@@ -94,6 +94,8 @@ export default function Spiral({ still, layout = {} }) {
     g.current.visible = out < 1;
     if (!g.current.visible) return;
     g.current.scale.set(1 + out * .6, 1 + out * .25, 1 + out * .6);
+    // optional bounce: the whole ribbon rises and sinks on a slow sine while it keeps turning
+    if (bob) g.current.position.y = position[1] + bob.amp * Math.sin((t / bob.period) * Math.PI * 2);
     mats.forEach(m => (m.opacity = 1 - out));
     // portrait phones: the headline fills the lower half, so the ribbon starts above it
     const lo = trim && state.size.width / state.size.height < .8 ? COUNTr * .4 : 0;
